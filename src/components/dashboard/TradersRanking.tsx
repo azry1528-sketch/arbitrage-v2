@@ -12,60 +12,86 @@ interface RankedTrader {
   trades_count?: number;
   best_trade?: number;
   avg_profit?: number;
-  level?: number;
   achievements?: number;
   win_streak?: number;
 }
 
 function generateFakeTraders(count: number, existingIds: Set<string>): RankedTrader[] {
   const pseudos = [
-    // Style crypto français
-    'BitcoinFr', 'EthereumFr', 'CryptoFranc', 'BlockchainFr',
-    'TradingFou', 'ForexMaster', 'BourseGuru', 'ActionHunter',
-    'BearMarket', 'BullRun', 'HODLFr', 'DiamondHandsFr',
-    'WalletWarrior', 'TokenMaster', 'CoinCollector', 'YieldHunter',
+    // Style crypto avec départements
+    'Bitcoin93', 'Ethereum75', 'Crypto69', 'Blockchain13',
+    'TradingFou93', 'ForexMaster75', 'BourseGuru69', 'ActionHunter13',
+    'BearMarket93', 'BullRun75', 'HODL69', 'DiamondHands13',
+    'WalletWarrior93', 'TokenMaster75', 'CoinCollector69', 'YieldHunter13',
     
-    // Style joueur français
-    'LeTrader', 'LeCrack', 'LeRoiDuTrade', 'LeMaître',
-    'LaMachine', 'LeProphète', 'LeGénie', 'LeMentalist',
-    'LeRenard', 'LeLoup', 'LeRequin', 'LePirate',
-    'LeChampion', 'LeGladiateur', 'LeNinja', 'LeSamouraï',
+    // Style joueur sans "Le"
+    'Trader93', 'Crack75', 'RoiDuTrade69', 'Maitre13',
+    'Machine93', 'Prophete75', 'Genie69', 'Mentalist13',
+    'Renard93', 'Loup75', 'Requin69', 'Pirate13',
+    'Champion93', 'Gladiateur75', 'Ninja69', 'Samourai13',
     
-    // Style fun français
-    'CryptoFou', 'BlockMan', 'TokenBoy', 'CoinMan',
-    'LeDéjanté', 'LeBarjo', 'LeTimbré', 'LeFada',
-    'CryptoGamin', 'Boursicoteur', 'Speculo', 'FlipCoin',
+    // Style fun
+    'CryptoFou93', 'BlockMan75', 'TokenBoy69', 'CoinMan13',
+    'Dejante93', 'Barjo75', 'Timbre69', 'Fada13',
+    'CryptoGamin93', 'Boursicoteur75', 'Speculo69', 'FlipCoin13',
     
-    // Style pro français
-    'Analyste', 'Strategiste', 'ExpertTrade', 'ProTrader',
-    'Gestionnaire', 'Portefeuille', 'Investisseur', 'Speculateur',
-    'Chartiste', 'TrendHunter', 'BreakoutHunter', 'SupportHunter',
-    'ResistanceBreaker', 'VolumeHunter', 'MomentumHunter',
+    // Style pro
+    'Analyste93', 'Strategiste75', 'ExpertTrade69', 'ProTrader13',
+    'Gestionnaire93', 'Portefeuille75', 'Investisseur69', 'Speculateur13',
+    'Chartiste93', 'TrendHunter75', 'BreakoutHunter69', 'SupportHunter13',
+    'ResistanceBreaker93', 'VolumeHunter75', 'MomentumHunter69',
     
-    // Style geek français
-    'Satoshifr', 'VitalikFr', 'GavinFr', 'CharlesFr',
-    'BinanceFr', 'CoinbaseFr', 'KrakenFr', 'LedgerFr',
-    'TrezorFr', 'MetamaskFr', 'OpenSeaFr', 'RaribleFr',
+    // Style geek
+    'Satoshifr93', 'Vitalik75', 'Gavin69', 'Charles13',
+    'Binance93', 'Coinbase75', 'Kraken69', 'Ledger13',
+    'Trezor93', 'Metamask75', 'OpenSea69', 'Rarible13',
     
-    // Nouveaux français
-    'LeBoursicoteur', 'LeSpeculo', 'LeFlipper', 'LeChiffreur',
-    'CryptoGamin', 'BlockEnFolie', 'TokenTonic', 'CoinCasseur',
-    'LeRentier', 'LeDividende', 'LeFiscal', 'LeOptimiste',
-    'LePessimiste', 'LeRealiste', 'LeStratège', 'LeTacticien',
-    'LePivot', 'LeRebond', 'LaTendance', 'LeMomentum',
-    'LeScalper', 'LeSwingeur', 'LePositonneur', 'LeDayTrader',
+    // Style animalier sans "Le"
+    'Taureau93', 'Ours75', 'Lion69', 'Tigre13', 'Dragon93',
+    'Phoenix75', 'Lynx69', 'Faucon13', 'Aigle93', 'RequinBlanc75',
     
-    // Style animalier français
-    'LeTaureau', 'Lours', 'LeLion', 'LeTigre', 'LeDragon',
-    'LePhoenix', 'LeLynx', 'LeFaucon', 'LeAigle', 'LeRequinBlanc',
+    // Style mythologique sans "Le"
+    'Zeus93', 'Poseidon75', 'Athena69', 'Apollo13', 'Hermes93',
+    'Thor75', 'Odin69', 'Loki13', 'Freyja93', 'Ragnar75',
     
-    // Style mythologique français
-    'LeZeus', 'LePoseidon', 'LeAthena', 'LeApollo', 'LeHermes',
-    'LeThor', 'LeOdin', 'LeLoki', 'LeFreyja', 'LeRagnar',
+    // Style street sans "Le"
+    'Boss93', 'Don75', 'King69', 'Prince13', 'Duc93',
+    'Baron75', 'Comte69', 'Marquis13', 'Chevalier93', 'Sire75',
     
-    // Style street français
-    'LeBoss', 'LeDon', 'LeKing', 'LePrince', 'LeDuc',
-    'LeBaron', 'LeComte', 'LeMarquis', 'LeChevalier', 'LeSire'
+    // Style trading pur
+    'Scalper93', 'Swingeur75', 'Positionneur69', 'DayTrader13',
+    'MomentumHunter93', 'TrendFollower75', 'BreakoutHunter69',
+    'ReversalMaster13', 'VolumeKing93', 'OscillatorPro75',
+    'IndicatorMaster69', 'SupportHunter13', 'ResistanceBreaker93',
+    
+    // Abréviations de noms connus
+    'Zizou93', 'Nano75', 'Titi69', 'Didi13', 'Roro93',
+    'Mimi75', 'Fifi69', 'Lulu13', 'Nono93', 'Jojo75',
+    'Kiki69', 'Riri13', 'Fafa93', 'Gigi75', 'Bebe69',
+    
+    // Combinaisons stylées
+    'CryptoKing93', 'BlockBuster75', 'TokenTonic69', 'CoinCasseur13',
+    'Rentier93', 'Dividende75', 'Fiscal69', 'Optimiste13',
+    'Pessimiste93', 'Realiste75', 'Strategie69', 'Tacticien13',
+    'Pivot93', 'Rebond75', 'Tendance69', 'Momentum13',
+    
+    // Plus de départements
+    'WhaleHunter34', 'MoonBoy92', 'PumpKing83', 'DumpQueen56',
+    'ShillMaster44', 'FomoHunter35', 'LamboDream64', 'MoonShot40',
+    'CryptoNinja67', 'BlockChainBoss59', 'DeFiKing62', 'NFTWhale76',
+    'WalletWizard87', 'TokenTrader21', 'CoinCollector88', 'YieldFarmer94',
+    'SwapMaster78', 'BridgeBuilder95', 'OracleKing82', 'ZkSnark27',
+    
+    // Départements variés
+    'BullRunHunter06', 'BearSlayer07', 'LamboDream08', 'MoonShot09',
+    'CryptoNinja10', 'BlockChainBoss11', 'DeFiKing12', 'NFTWhale14',
+    'WalletWizard15', 'TokenTrader16', 'CoinCollector17', 'YieldFarmer18',
+    'SwapMaster19', 'BridgeBuilder20', 'OracleKing22', 'ZkSnark23',
+    
+    // Les plus connus
+    'TradingKing31', 'ForexMaster32', 'BourseGuru33', 'ActionHunter36',
+    'BearMarket37', 'BullRun38', 'HODL39', 'DiamondHands41',
+    'WalletWarrior43', 'TokenMaster45', 'CoinCollector46', 'YieldHunter47'
   ];
 
   const fakeTraders: RankedTrader[] = [];
@@ -78,7 +104,6 @@ function generateFakeTraders(count: number, existingIds: Set<string>): RankedTra
     attempts++;
     const pseudo = pseudos[Math.floor(Math.random() * pseudos.length)];
     
-    // Éviter les doublons exacts
     if (usedNames.has(pseudo)) continue;
     usedNames.add(pseudo);
     
@@ -102,12 +127,10 @@ function generateFakeTraders(count: number, existingIds: Set<string>): RankedTra
       earnings = Math.floor(baseEarnings * (0.5 + Math.random() * 2.5));
     }
     
-    // Plus de trades (500-5000)
     const tradesCount = 500 + Math.floor(Math.random() * 4500);
     const winRate = 40 + Math.floor(Math.random() * 45);
     const bestTrade = Math.floor(earnings * (0.15 + Math.random() * 0.45));
     const avgProfit = Number((earnings / tradesCount * 10).toFixed(1));
-    const level = Math.floor(Math.random() * 15) + 1;
     const achievements = Math.floor(Math.random() * 12);
     const winStreak = Math.floor(Math.random() * 15);
 
@@ -120,7 +143,6 @@ function generateFakeTraders(count: number, existingIds: Set<string>): RankedTra
       trades_count: Math.min(5000, tradesCount),
       best_trade: Math.round(bestTrade),
       avg_profit: avgProfit,
-      level: level,
       achievements: achievements,
       win_streak: winStreak
     });
@@ -148,8 +170,7 @@ function TraderModal({ trader, onClose }: { trader: RankedTrader; onClose: () =>
             <div className="mt-2 font-semibold text-foreground">{trader.full_name}</div>
             <div className="flex items-center justify-center gap-3 mt-1">
               <span className="text-sm text-muted-foreground">#{trader.rank}</span>
-              <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full text-foreground">Niv. {trader.level || 1}</span>
-              <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-full text-amber-500">🏆 {trader.achievements || 0}</span>
+              
             </div>
           </div>
           
@@ -240,8 +261,8 @@ function TraderRow({
           <span className="font-medium">{trader.trades_count || 0} trades</span>
           <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
           <span className="flex items-center gap-0.5">
-            <Zap className="w-3 h-3" />
-            Niv.{trader.level || 1}
+            <Award className="w-3 h-3" />
+            {trader.achievements || 0}
           </span>
         </div>
       </div>
@@ -274,7 +295,6 @@ export function TradersRanking() {
         const realTraders = (data as RankedTrader[]) || [];
         const existingIds = new Set(realTraders.map(t => t.id));
         
-        // 200 traders fictifs
         const fakeTraders = generateFakeTraders(200, existingIds);
         
         const allTraders = [...realTraders, ...fakeTraders];

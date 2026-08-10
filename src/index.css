@@ -1,0 +1,365 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ArbiFlow Design System — aligné sur la landing page (thème Crypgo / Arbiflow :
+   fond quasi noir #04070d + accent menthe #99e39e + police DM Sans) */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* Fond sombre — identique au #04070d de la landing */
+    --background: 220 53% 3%;
+    --foreground: 0 0% 98%;
+
+    /* Cards avec effet glass, sur la même teinte que le fond */
+    --card: 220 45% 6%;
+    --card-foreground: 0 0% 98%;
+
+    /* Popover */
+    --popover: 220 45% 7%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary — Vert menthe (#99e39e), identique à la landing */
+    --primary: 124 57% 63%;
+    --primary-foreground: 220 53% 3%;
+
+    /* Secondary - Subtle dark */
+    --secondary: 220 30% 12%;
+    --secondary-foreground: 0 0% 92%;
+
+    /* Muted */
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 10% 62%;
+
+    /* Accent — même vert menthe que le primary */
+    --accent: 124 57% 63%;
+    --accent-foreground: 220 53% 3%;
+
+    /* Destructive */
+    --destructive: 352 91% 62%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success — vert Binance officiel (#0ECB81) */
+    --success: 157 87% 43%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 20% 4%;
+
+    /* Borders and inputs */
+    --border: 220 20% 16%;
+    --input: 220 20% 13%;
+    --ring: 124 57% 63%;
+
+    --radius: 1.25rem;
+
+    /* Sidebar */
+    --sidebar-background: 220 53% 4%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 124 57% 63%;
+    --sidebar-primary-foreground: 220 53% 3%;
+    --sidebar-accent: 220 30% 10%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 20% 14%;
+    --sidebar-ring: 124 57% 63%;
+
+    /* Custom gradients — dégradé vert menthe aligné sur la landing (#99e39e) */
+    --gradient-gold: linear-gradient(135deg, hsl(124 57% 63%) 0%, hsl(140 55% 68%) 50%, hsl(150 50% 60%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(220 45% 6%) 0%, hsl(220 53% 2%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(220 40% 7%) 0%, hsl(220 53% 4%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220 53% 3%) 0%, hsl(220 45% 7%) 50%, hsl(220 53% 3%) 100%);
+
+    /* Glow effects */
+    --glow-gold: 0 0 40px hsl(124 57% 63% / 0.3);
+    --glow-gold-strong: 0 0 60px hsl(124 57% 63% / 0.5);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
+    --shadow-elevated: 0 8px 40px hsl(0 0% 0% / 0.5);
+  }
+
+  /* Dark mode is the same as default for this premium dark theme */
+  .dark {
+    --background: 220 53% 3%;
+    --foreground: 0 0% 98%;
+    --card: 220 45% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 45% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 124 57% 63%;
+    --primary-foreground: 220 53% 3%;
+    --secondary: 220 30% 12%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 10% 62%;
+    --accent: 124 57% 63%;
+    --accent-foreground: 220 53% 3%;
+    --destructive: 352 91% 62%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 16%;
+    --input: 220 20% 13%;
+    --ring: 124 57% 63%;
+    --sidebar-background: 220 53% 4%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 124 57% 63%;
+    --sidebar-primary-foreground: 220 53% 3%;
+    --sidebar-accent: 220 30% 10%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 20% 14%;
+    --sidebar-ring: 124 57% 63%;
+  }
+
+  /* Light theme — toggled via the Profile > Préférences setting */
+  .light-theme {
+    --background: 100 30% 97%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 124 45% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 100 20% 92%;
+    --secondary-foreground: 220 20% 15%;
+    --muted: 100 15% 90%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 124 45% 38%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 352 91% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 85%;
+    --input: 220 15% 93%;
+    --ring: 124 45% 38%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 15%;
+    --sidebar-primary: 124 45% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 100 20% 92%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 15% 85%;
+    --sidebar-ring: 124 45% 38%;
+  }
+
+  .light-theme .glass-card {
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.95) 0%, hsl(45 20% 96% / 0.9) 100%);
+    box-shadow: 0 4px 24px hsl(220 20% 50% / 0.12);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Premium glass card effect — même teinte de fond que la landing */
+  .glass-card {
+    @apply relative overflow-hidden rounded-xl border border-border/50;
+    background: linear-gradient(145deg, hsl(220 40% 7% / 0.9) 0%, hsl(220 53% 4% / 0.95) 100%);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-500 pointer-events-none;
+    background: linear-gradient(135deg, hsl(124 57% 63% / 0.1) 0%, transparent 50%);
+  }
+
+  .glass-card:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Dégradé de texte vert menthe (aligné sur l'accent #99e39e de la landing) */
+  .text-gradient-gold {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Bouton vert menthe avec glow — même style que les CTA de la landing */
+  .btn-gold {
+    @apply relative overflow-hidden font-semibold transition-all duration-300 rounded-lg;
+    background: var(--gradient-gold);
+    color: hsl(220 53% 3%);
+    box-shadow: var(--glow-gold);
+  }
+
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-gold-strong);
+  }
+
+  /* Animated border gradient */
+  .border-gradient {
+    @apply relative;
+  }
+
+  .border-gradient::before {
+    content: '';
+    @apply absolute -inset-px rounded-xl;
+    background: var(--gradient-gold);
+    z-index: -1;
+    opacity: 0.5;
+  }
+
+  /* Pulse animation for live indicators */
+  .pulse-live {
+    @apply relative;
+  }
+
+  .pulse-live::after {
+    content: '';
+    @apply absolute w-2 h-2 rounded-full;
+    background: hsl(var(--success));
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+
+  /* Stats card hover effect */
+  .stat-card {
+    @apply glass-card p-6 transition-all duration-300;
+  }
+
+  .stat-card:hover {
+    @apply border-primary/50;
+    box-shadow: var(--glow-gold);
+  }
+
+  /* Crypto ticker animation */
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .ticker-animate {
+    animation: ticker 30s linear infinite;
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Shine effect */
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .shine-effect {
+    @apply relative overflow-hidden;
+  }
+
+  .shine-effect::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent 0%, hsl(124 57% 63% / 0.2) 50%, transparent 100%);
+    transform: translateX(-100%);
+    animation: shine 3s ease-in-out infinite;
+  }
+
+  /* Scroll reveal animation classes */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Premium input style */
+  .input-premium {
+    @apply bg-input border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-300;
+  }
+
+  .input-premium:focus {
+    box-shadow: 0 0 0 3px hsl(124 57% 63% / 0.1);
+  }
+}
+
+@layer utilities {
+  /* Divider en pointillés — style repris du template Forexo pour les
+     résumés de solde (balance / gains / marge) */
+  .hr-dashed {
+    border: none;
+    border-top: 1px dashed hsl(var(--border));
+    margin: 0.75rem 0;
+  }
+
+  /* Étiquette de section dans la sidebar (ex : "MENU PRINCIPAL") */
+  .sidebar-section-label {
+    @apply px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(220 20% 6%);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(220 15% 20%);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(124 57% 63% / 0.5);
+  }
+
+  /* Selection color */
+  ::selection {
+    background: hsl(124 57% 63% / 0.3);
+    color: hsl(0 0% 98%);
+  }
+}

@@ -37,33 +37,123 @@ const FALLBACK: CryptoPrice[] = [
   { id: 'ethereum-classic', symbol: 'etc', name: 'Ethereum Classic', current_price: 26.7, price_change_percentage_24h: 0.7, total_volume: 71_000_000, image: 'https://assets.coingecko.com/coins/images/453/small/ethereum-classic-logo.png' },
 ];
 
+// ---------------------------------------------------------------------------
+// Magasin partagé : UNE seule requête et UN seul timer pour toute l'application,
+// quel que soit le nombre de composants qui appellent useCryptoPrices().
+// ---------------------------------------------------------------------------
+const CACHE_KEY = 'covesting:prices:v1';
+const REFRESH_MS = 60_000;
+const BACKOFF_MS = 120_000; // pause après un 429
+const DIRECT_URL =
+  'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=1h,24h,7d';
+
+type State = { prices: CryptoPrice[]; loading: boolean; error: string | null };
+
+const sortByCap = (list: CryptoPrice[]) =>
+  [...list].sort((a, b) => (b.market_cap || b.current_price) - (a.market_cap || a.current_price));
+
+function readCache(): CryptoPrice[] | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { data } = JSON.parse(raw);
+    return Array.isArray(data) && data.length ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(data: CryptoPrice[]) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data }));
+  } catch {
+    /* stockage plein ou indisponible : on ignore */
+  }
+}
+
+let state: State = { prices: readCache() ?? sortByCap(FALLBACK), loading: true, error: null };
+const listeners = new Set<(s: State) => void>();
+let timer: ReturnType<typeof setTimeout> | null = null;
+let inFlight = false;
+
+function setState(next: Partial<State>) {
+  state = { ...state, ...next };
+  listeners.forEach((l) => l(state));
+}
+
+async function getJson(url: string): Promise<{ ok: boolean; status: number; data?: any }> {
+  const res = await fetch(url);
+  if (!res.ok) return { ok: false, status: res.status };
+  return { ok: true, status: res.status, data: await res.json() };
+}
+
+async function refresh(): Promise<number> {
+  if (inFlight) return REFRESH_MS;
+  inFlight = true;
+  let nextDelay = REFRESH_MS;
+  try {
+    // 1) proxy Vercel (réponse mise en cache côté CDN) ; 2) API directe en secours (dev local)
+    let result: { ok: boolean; status: number; data?: any } | null = null;
+    try {
+      result = await getJson('/api/prices');
+      if (result.ok && !Array.isArray(result.data)) result = null; // ex. index.html renvoyé en dev
+    } catch {
+      result = null;
+    }
+    if (!result || !result.ok) {
+      try {
+        result = await getJson(DIRECT_URL);
+      } catch {
+        result = null;
+      }
+    }
+
+    if (result?.ok && Array.isArray(result.data) && result.data.length) {
+      const sorted = sortByCap(result.data as CryptoPrice[]);
+      writeCache(sorted);
+      setState({ prices: sorted, error: null, loading: false });
+    } else {
+      if (result?.status === 429) nextDelay = BACKOFF_MS;
+      // On garde les derniers prix connus (cache ou secours) au lieu de les écraser
+      setState({ error: 'Using cached prices', loading: false });
+    }
+  } finally {
+    inFlight = false;
+  }
+  return nextDelay;
+}
+
+function schedule(delay: number) {
+  timer = setTimeout(async () => {
+    const next = await refresh();
+    if (listeners.size > 0) schedule(next);
+  }, delay);
+}
+
+function subscribe(listener: (s: State) => void) {
+  listeners.add(listener);
+  if (listeners.size === 1) {
+    // premier abonné : on démarre (ou on relance si le cache est périmé)
+    refresh().then((next) => {
+      if (listeners.size > 0 && timer === null) schedule(next);
+    });
+  }
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0 && timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+}
+
 export function useCryptoPrices() {
-  const [prices, setPrices] = useState<CryptoPrice[]>(FALLBACK);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<State>(state);
 
   useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        const response = await fetch(
-          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=1h,24h,7d`
-        );
-        if (!response.ok) throw new Error('Failed to fetch prices');
-        const data = await response.json();
-        const sorted = [...data].sort((a, b) => (b.market_cap || 0) - (a.market_cap || 0));
-        setPrices(sorted);
-        setError(null);
-      } catch (err) {
-        setPrices([...FALLBACK].sort((a, b) => (b.market_cap || b.current_price) - (a.market_cap || a.current_price)));
-        setError('Using cached prices');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPrices();
-    const interval = setInterval(fetchPrices, 60000);
-    return () => clearInterval(interval);
+    setSnapshot(state);
+    return subscribe(setSnapshot);
   }, []);
 
-  return { prices, loading, error };
+  return { prices: snapshot.prices, loading: snapshot.loading, error: snapshot.error };
 }

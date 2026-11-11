@@ -99,10 +99,10 @@ export function SupportChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-36 right-4 lg:bottom-24 lg:right-6 z-50 w-[calc(100vw-2rem)] max-w-sm h-[28rem] glass-card rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-border"
+            className="fixed bottom-36 right-4 lg:bottom-24 lg:right-6 z-50 w-[calc(100vw-2rem)] max-w-sm h-[28rem] glass-card rounded-lg shadow-2xl flex flex-col overflow-hidden border border-border"
           >
             <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-secondary/30">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                 <MessageCircle className="w-4 h-4 text-primary-foreground" />
               </div>
               <div>
@@ -120,13 +120,13 @@ export function SupportChatWidget() {
                 tickets.map((t) => (
                   <div key={t.id} className="space-y-1.5">
                     <div className="flex justify-end">
-                      <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-primary text-primary-foreground px-3 py-2 text-sm">
+                      <div className="max-w-[80%] rounded-lg rounded-tr-sm bg-primary text-primary-foreground px-3 py-2 text-sm">
                         {t.message}
                       </div>
                     </div>
                     {t.admin_response && (
                       <div className="flex justify-start">
-                        <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-secondary px-3 py-2 text-sm">
+                        <div className="max-w-[80%] rounded-lg rounded-tl-sm bg-secondary px-3 py-2 text-sm">
                           {t.admin_response}
                         </div>
                       </div>

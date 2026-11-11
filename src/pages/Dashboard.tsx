@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, NavLink, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Routes, Route, NavLink, Navigate, useLocation, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Zap, LayoutDashboard, Wallet, TrendingUp, ArrowDownCircle, ArrowUpCircle,
@@ -32,7 +32,6 @@ import { RecentActivityBanner } from '@/components/dashboard/RecentActivityBanne
 import { BalanceSparkline } from '@/components/dashboard/BalanceSparkline';
 import { ActiveBotsWidget } from '@/components/dashboard/ActiveBotsWidget';
 import { RecentTransactionsFeed } from '@/components/dashboard/RecentTransactionsFeed';
-import { MarketMoodBadge } from '@/components/dashboard/MarketMoodBadge';
 import { PlatformSpread } from '@/components/dashboard/PlatformSpread';
 import { BottomNav } from '@/components/dashboard/BottomNav';
 import { TradingViewChart } from '@/components/dashboard/TradingViewChart';
@@ -43,10 +42,12 @@ import { Announcements } from '@/components/dashboard/Announcements';
 import { TutorialDialog } from '@/components/dashboard/TutorialDialog';
 import { AnnouncementsDialog } from '@/components/dashboard/AnnouncementsDialog';
 import { InstallAppPopup } from '@/components/InstallAppPopup';
+import { Logo } from '@/components/brand/Logo';
+import { CovsCoin } from '@/components/brand/CovsToken';
+import { TOKEN_SYMBOL } from '@/lib/brand';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTrading } from '@/contexts/TradingContext';
-import MarketsPage from './dashboard/MarketsPage';
-import StrategyPage from './dashboard/StrategyPage';
+import StrategyHubPage from './dashboard/StrategyHubPage';
 import SignalsPage from './dashboard/SignalsPage';
 import BotsPage from './dashboard/BotsPage';
 import BotDetailPage from './dashboard/BotDetailPage';
@@ -54,6 +55,16 @@ import AnnouncementsPage from './dashboard/AnnouncementsPage';
 import { KYCVerification } from '@/components/dashboard/KYCVerification';
 
 // ================= Overview (Home) =================
+// Anciennes URLs conservées en redirection (favoris, notifications, liens partagés)
+function RedirectTo({ to }: { to: string }) {
+  const { search } = useLocation();
+  const [pathname, query = ''] = to.split('?');
+  const params = new URLSearchParams(search);
+  new URLSearchParams(query).forEach((v, k) => params.set(k, v));
+  const qs = params.toString();
+  return <Navigate to={{ pathname, search: qs ? `?${qs}` : '' }} replace />;
+}
+
 function DashboardOverview() {
   const { profile, refreshProfile } = useAuth();
   const { prices } = useCryptoPrices();
@@ -105,17 +116,29 @@ function DashboardOverview() {
   ];
 
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full space-y-4">
       {/* Ligne principale — solde à gauche (large), widgets clés à droite. Pleine largeur sur PC au lieu d'une colonne centrée */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="lg:col-span-8 rounded-[20px] p-6 md:p-8 bg-card border border-border/60 flex flex-col">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+        className="lg:col-span-8 rounded-lg p-5 md:p-6 bg-card border border-border flex flex-col">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {t('totalBalance')}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="text-base font-medium text-foreground">{t('totalBalance')}</span>
+              <button onClick={() => setHideBalance((v) => !v)} className="text-muted-foreground hover:text-foreground transition-colors duration-150" aria-label={hideBalance ? 'Afficher le solde' : 'Masquer le solde'}>
+                {hideBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <div className="flex items-baseline gap-2 mt-3">
+              <span className="text-3xl md:text-4xl font-semibold tracking-tight tabular-nums font-mono">
+                {hideBalance
+                  ? '••••••'
+                  : displayCurrency === 'BTC'
+                  ? (btcPrice ? (balance / btcPrice).toFixed(8) : '0.00000000')
+                  : balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
               <Select value={displayCurrency} onValueChange={(v) => setDisplayCurrency(v as 'USDT' | 'BTC')}>
-                <SelectTrigger className="h-6 w-auto gap-1 border-none bg-transparent px-1.5 py-0 text-xs text-muted-foreground hover:text-foreground">
+                <SelectTrigger className="h-6 w-auto gap-1 border-none bg-transparent px-1 py-0 text-sm font-medium text-foreground focus:ring-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -123,46 +146,35 @@ function DashboardOverview() {
                   <SelectItem value="BTC">BTC</SelectItem>
                 </SelectContent>
               </Select>
-              <button onClick={() => setHideBalance((v) => !v)} className="text-muted-foreground hover:text-foreground transition-colors duration-200" aria-label={hideBalance ? 'Afficher le solde' : 'Masquer le solde'}>
-                {hideBalance ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
             </div>
-            <div className="text-3xl md:text-5xl font-bold mt-2 tracking-tight font-mono">
-              {hideBalance
-                ? '••••••'
-                : displayCurrency === 'BTC'
-                ? `${btcPrice ? (balance / btcPrice).toFixed(6) : '0.000000'} BTC`
-                : `${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`}
+            <div className="text-sm mt-1.5 text-muted-foreground tabular-nums font-mono">
+              {hideBalance ? '••••' : `≈ ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`}
             </div>
-            <div className={`text-sm mt-2 font-medium font-mono ${positive ? 'text-success' : 'text-destructive'}`}>
-              {hideBalance ? '••••' : (
-                <>{t('todayGain')} {positive ? '+' : ''}${todayGain.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({positive ? '+' : ''}{todayPct}%)</>
-              )}
+            <div className="flex items-center gap-2 text-sm mt-2">
+              <span className="text-muted-foreground">{t('todayGain')}</span>
+              <span className={`font-medium tabular-nums font-mono ${positive ? 'text-success' : 'text-destructive'}`}>
+                {hideBalance ? '••••' : `${positive ? '+' : '-'}${Math.abs(todayGain).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $ (${positive ? '+' : ''}${todayPct} %)`}
+              </span>
             </div>
           </div>
 
-          {/* Sparkline — évolution du solde sur 7 jours, visible uniquement sur mobile/tablette (remplacée par le grand graphique ci-dessous sur PC) */}
-          <div className="flex md:hidden items-center shrink-0">
-            <BalanceSparkline />
+          {/* Actions — petits boutons plats en haut à droite, comme sur Binance */}
+          <div className="flex gap-2 shrink-0">
+            <Link to="/dashboard/wallet?tab=depot">
+              <Button size="sm" className="h-8 px-3 text-xs rounded-md">Dépôt</Button>
+            </Link>
+            <Link to="/dashboard/wallet?tab=retrait">
+              <Button size="sm" variant="secondary" className="h-8 px-3 text-xs rounded-md">Retrait</Button>
+            </Link>
+            <Link to="/dashboard/portfolio">
+              <Button size="sm" variant="secondary" className="h-8 px-3 text-xs rounded-md">Historique</Button>
+            </Link>
           </div>
         </div>
 
-        <div className="flex gap-3 mt-5">
-          <Link to="/dashboard/deposits" className="flex-1">
-            <Button className="w-full rounded-2xl gap-2">
-              <ArrowDownCircle className="w-4 h-4" /> Déposer
-            </Button>
-          </Link>
-          <Link to="/dashboard/withdrawals" className="flex-1">
-            <Button variant="secondary" className="w-full rounded-2xl gap-2">
-              <ArrowUpCircle className="w-4 h-4" /> Retirer
-            </Button>
-          </Link>
-          <Link to="/dashboard/portfolio" className="flex-1">
-            <Button variant="secondary" className="w-full rounded-2xl gap-2">
-              <Clock className="w-4 h-4" /> Historique
-            </Button>
-          </Link>
+        {/* Sparkline — évolution du solde sur 7 jours, mobile/tablette (remplacée par le grand graphique sur PC) */}
+        <div className="flex md:hidden items-center mt-4">
+          <BalanceSparkline />
         </div>
 
         {/* Grand graphique de performance — occupe l'espace vacant sur PC, aligné en hauteur avec la colonne latérale */}
@@ -184,7 +196,7 @@ function DashboardOverview() {
           <div className="grid grid-cols-3 md:grid-cols-6 gap-3 lg:hidden">
             {quickActions.map((a) => (
               <Link to={a.to} key={a.label}
-                className="rounded-2xl p-4 md:p-5 bg-card border border-border/60 flex flex-col items-center justify-center gap-2.5 transition-colors duration-200 hover:border-primary/40">
+                className="rounded-lg p-4 md:p-5 bg-card border border-border flex flex-col items-center justify-center gap-2.5 transition-colors duration-200 hover:border-primary/40">
                 <a.icon className="w-6 h-6 text-primary" strokeWidth={2} />
                 <span className="text-xs text-center text-foreground">{a.label}</span>
               </Link>
@@ -195,42 +207,11 @@ function DashboardOverview() {
         </div>
       </div>
 
-      {/* Tendances du marché — mini-cartes des plus fortes variations */}
-      <MarketMovers prices={prices} />
-
-      {/* Marché + dernières transactions, côte à côte sur PC pour occuper toute la largeur. items-stretch pour que la carte transactions égale la hauteur de la carte marché */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-      <div className="lg:col-span-8 rounded-[20px] p-5 md:p-6 bg-card border border-border/60">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-base">Prix crypto en direct</h3>
-          <Link to="/dashboard/markets" className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-            Voir plus <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
+      {/* Marchés (tableau triable) + dernières transactions, côte à côte sur PC */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        <div className="lg:col-span-8">
+          <MarketMovers prices={prices} />
         </div>
-        <MarketMoodBadge prices={prices} />
-        <div className="flex items-center justify-between px-1 py-2 mt-2 text-[11px] text-muted-foreground">
-          <span>Nom</span>
-          <div className="flex items-center gap-10">
-            <span>Dernier prix</span>
-            <span>Var. % 24h</span>
-          </div>
-        </div>
-        <div className="divide-y divide-border/40">
-          {prices.slice(0, 6).map((c) => (
-            <div key={c.id} className="flex items-center gap-3 py-3">
-              {c.image && <img src={c.image} alt={c.symbol} className="w-8 h-8 rounded-full" />}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm uppercase">{c.symbol}</div>
-                <div className="text-[11px] text-muted-foreground">{c.name}</div>
-              </div>
-              <div className="text-sm font-medium w-28 text-right">${c.current_price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-              <div className={`w-20 text-right px-2 py-1 rounded-md text-xs font-semibold ${c.price_change_percentage_24h >= 0 ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
-                {c.price_change_percentage_24h >= 0 ? '+' : ''}{c.price_change_percentage_24h.toFixed(2)}%
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
         {/* Colonne latérale — dernières transactions, à côté du marché sur PC. h-full pour égaler la hauteur de la carte marché */}
         <div className="lg:col-span-4 h-full">
@@ -239,7 +220,7 @@ function DashboardOverview() {
       </div>
 
       {/* Classement des traders + écarts de prix entre plateformes, côte à côte sur PC */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         <div className="lg:col-span-7"><TradersRanking /></div>
         <div className="lg:col-span-5"><PlatformSpread prices={prices} /></div>
       </div>
@@ -362,7 +343,7 @@ function PortfolioPage() {
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `arbiflow-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.href = url; a.download = `covesting-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -390,7 +371,7 @@ function PortfolioPage() {
     <div className="space-y-6">
       {/* Balance + actions */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-6 md:p-8 bg-gradient-to-br from-primary/15 via-secondary/60 to-accent/15 border border-primary/20">
+        className="relative overflow-hidden rounded-lg p-6 md:p-8 bg-card border border-border border border-primary/20">
         <div className="text-xs md:text-sm text-muted-foreground">Solde disponible (USDT)</div>
         <div className="text-4xl md:text-5xl font-bold text-gradient-gold mt-1">
           ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -399,10 +380,10 @@ function PortfolioPage() {
           Gains totaux : <b className="text-success">${Number(profile?.total_earnings || 0).toFixed(2)}</b>
         </div>
         <div className="flex gap-3 mt-5">
-          <Button className="btn-gold flex-1 md:flex-none" onClick={() => navigate('/dashboard/deposits')}>
+          <Button className="btn-gold flex-1 md:flex-none" onClick={() => navigate('/dashboard/wallet?tab=depot')}>
             <ArrowDownCircle className="w-4 h-4 mr-2" /> Dépôt
           </Button>
-          <Button variant="outline" className="flex-1 md:flex-none" onClick={() => navigate('/dashboard/withdrawals')}>
+          <Button variant="outline" className="flex-1 md:flex-none" onClick={() => navigate('/dashboard/wallet?tab=retrait')}>
             <Send className="w-4 h-4 mr-2" /> Retrait
           </Button>
         </div>
@@ -513,7 +494,7 @@ function PortfolioPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par crypto ou montant..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-secondary/40 border border-border/50 text-sm placeholder:text-muted-foreground input-premium"
+            className="w-full pl-9 pr-3 py-2 rounded-md bg-secondary border border-transparent text-sm placeholder:text-muted-foreground input-premium"
           />
         </div>
 
@@ -563,6 +544,23 @@ function PortfolioPage() {
   );
 }
 
+// ================= Portefeuille : dépôts + retraits =================
+function WalletPage() {
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'retrait' ? 'retrait' : 'depot';
+  return (
+    <div className="space-y-6">
+      <Tabs value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })}>
+        <TabsList className="grid grid-cols-2 w-full max-w-sm">
+          <TabsTrigger value="depot">Dépôts</TabsTrigger>
+          <TabsTrigger value="retrait">Retraits</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      {tab === 'depot' ? <DepositsPage /> : <WithdrawalsPage />}
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status: string }) {
   const c: Record<string, any> = {
     pending: { l: 'En attente', I: Clock, cls: 'bg-warning/20 text-warning' },
@@ -606,7 +604,6 @@ function DepositsPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Dépôts</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-card p-5 space-y-4">
           <h3 className="font-bold">Nouveau dépôt crypto</h3>
@@ -719,7 +716,6 @@ function WithdrawalsPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Retraits</h2>
       {profile?.withdrawals_blocked && <div className="p-3 rounded bg-destructive/20 border border-destructive text-destructive text-sm">Retraits bloqués — contactez le support.</div>}
       {!requiresPwd && (
         <div className="p-3 rounded bg-warning/10 border border-warning/30 text-warning text-xs">
@@ -946,7 +942,7 @@ function ProfilePage() {
           <h3 className="font-bold">Informations</h3>
           <div className="flex items-center gap-4 pb-2">
             <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-xl overflow-hidden">
+              <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl overflow-hidden">
                 {(profile as any)?.avatar_url ? (
                   <img src={(profile as any).avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (profile?.full_name?.charAt(0) || 'U')}
@@ -1078,7 +1074,7 @@ export default function Dashboard() {
   const submitHeaderSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = headerSearch.trim();
-    navigate(q ? `/dashboard/markets?q=${encodeURIComponent(q)}` : '/dashboard/markets');
+    navigate(q ? `/dashboard/strategy?tab=marches&q=${encodeURIComponent(q)}` : '/dashboard/strategy?tab=marches');
   };
 
   // Popup du tutoriel à l'inscription, popup des annonces à la connexion, puis
@@ -1122,7 +1118,6 @@ export default function Dashboard() {
       collapsible: false,
       items: [
         { path: '/dashboard', icon: LayoutDashboard, label: t('home') },
-        { path: '/dashboard/markets', icon: BarChart3, label: t('markets') },
         { path: '/dashboard/trade', icon: Zap, label: t('trader') },
         { path: '/dashboard/strategy', icon: Layers, label: t('strategies'), isNew: true },
       ],
@@ -1132,8 +1127,7 @@ export default function Dashboard() {
       collapsible: true,
       items: [
         { path: '/dashboard/portfolio', icon: Wallet, label: t('assets') },
-        { path: '/dashboard/deposits', icon: ArrowDownCircle, label: t('deposits') },
-        { path: '/dashboard/withdrawals', icon: ArrowUpCircle, label: t('withdrawals') },
+        { path: '/dashboard/wallet', icon: ArrowDownCircle, label: `${t('deposits')} / ${t('withdrawals')}` },
         { path: '/dashboard/network', icon: Users, label: t('network') },
       ],
     },
@@ -1154,13 +1148,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar — visible en permanence sur desktop, absente sur mobile (navigation via la barre basse) */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-sidebar border-r border-sidebar-border">
+      <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="flex flex-col h-full">
           <div className="px-5 py-5 border-b border-sidebar-border">
-            <NavLink to="/" className="flex items-center gap-2">
-              <img src="/images/logo/logo.svg" alt="logo" className="h-6 w-auto" />
-              <span className="text-base font-bold text-white">ArbiFlow</span>
-            </NavLink>
+            <Logo size={32} />
           </div>
           <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
             {sideGroups.map((group, gi) => (
@@ -1173,7 +1164,7 @@ export default function Dashboard() {
                     <AccordionContent className="pb-0">
                       {group.items.map(i => (
                         <NavLink key={i.path} to={i.path} end={i.path === '/dashboard'}
-                          className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 ${isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent'}`}>
+                          className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors duration-150 ${isActive ? 'bg-sidebar-accent text-foreground font-medium' : 'text-sidebar-foreground hover:bg-sidebar-accent/60'}`}>
                           <i.icon className="w-4 h-4" strokeWidth={2} /><span className="flex-1">{i.label}</span>
                           {(i as any).isNew && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary">New</span>}
                         </NavLink>
@@ -1186,7 +1177,7 @@ export default function Dashboard() {
                   <div className="sidebar-section-label pt-0">{group.label}</div>
                   {group.items.map(i => (
                     <NavLink key={i.path} to={i.path} end={i.path === '/dashboard'}
-                      className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 ${isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent'}`}>
+                      className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors duration-150 ${isActive ? 'bg-sidebar-accent text-foreground font-medium' : 'text-sidebar-foreground hover:bg-sidebar-accent/60'}`}>
                       <i.icon className="w-4 h-4" strokeWidth={2} /><span className="flex-1">{i.label}</span>
                       {(i as any).isNew && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary">New</span>}
                     </NavLink>
@@ -1195,9 +1186,18 @@ export default function Dashboard() {
               )
             ))}
           </nav>
+          <div className="px-3 pb-3 space-y-2">
+            <div className="flex items-center gap-2.5 rounded-md border border-border bg-secondary px-3 py-2.5">
+              <CovsCoin className="w-8 h-8" />
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-foreground leading-tight">Token {TOKEN_SYMBOL}</div>
+                <div className="text-[11px] text-muted-foreground leading-tight">Écosystème Covesting</div>
+              </div>
+            </div>
+          </div>
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-sm">{profile?.full_name?.charAt(0) || 'U'}</div>
+              <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">{profile?.full_name?.charAt(0) || 'U'}</div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate text-sm">{profile?.full_name || 'Trader'}</div>
                 <div className="text-[11px] text-muted-foreground truncate">{profile?.email}</div>
@@ -1211,13 +1211,10 @@ export default function Dashboard() {
       </aside>
 
       <main className="flex-1 min-h-screen w-full">
-        <header className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl border-b border-border">
+        <header className="sticky top-0 z-30 bg-background border-b border-border">
           {/* Ligne 1 : logo (mobile) + icônes — sur desktop, se confond avec la barre de recherche sur une seule ligne */}
           <div className="flex items-center gap-3 px-4 md:px-6 h-14 lg:h-16">
-            <NavLink to="/" className="lg:hidden flex items-center gap-2">
-              <img src="/images/logo/logo.svg" alt="logo" className="h-6 w-auto" />
-              <span className="font-bold text-white text-sm">ArbiFlow</span>
-            </NavLink>
+            <Logo size={28} className="lg:hidden" />
 
             {/* Barre de recherche — visible en ligne sur desktop uniquement */}
             <form onSubmit={submitHeaderSearch} className="hidden lg:flex items-center relative flex-1 max-w-sm">
@@ -1227,7 +1224,7 @@ export default function Dashboard() {
                 value={headerSearch}
                 onChange={(e) => setHeaderSearch(e.target.value)}
                 placeholder="Rechercher des cryptos, produits..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-secondary/40 border border-border/50 text-sm placeholder:text-muted-foreground input-premium"
+                className="w-full pl-9 pr-3 py-2 rounded-md bg-secondary border border-transparent text-sm placeholder:text-muted-foreground input-premium"
               />
             </form>
 
@@ -1242,7 +1239,7 @@ export default function Dashboard() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="p-0.5 rounded-full hover:bg-secondary/60 transition-colors duration-200 ml-0.5">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-xs">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
                       {profile?.full_name?.charAt(0) || 'U'}
                     </div>
                   </button>
@@ -1279,7 +1276,7 @@ export default function Dashboard() {
                 value={headerSearch}
                 onChange={(e) => setHeaderSearch(e.target.value)}
                 placeholder="Rechercher des cryptos, produits..."
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-secondary/40 border border-border/50 text-sm placeholder:text-muted-foreground input-premium"
+                className="w-full pl-9 pr-3 py-2.5 rounded-md bg-secondary border border-transparent text-sm placeholder:text-muted-foreground input-premium"
               />
             </div>
           </form>
@@ -1288,24 +1285,25 @@ export default function Dashboard() {
         <WatchlistSheet open={watchlistOpen} onOpenChange={setWatchlistOpen} />
         <AppearanceSheet open={appearanceOpen} onOpenChange={setAppearanceOpen} />
 
-        <div className="p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-6xl mx-auto">
+        <div className="p-4 md:p-6 lg:px-10 lg:py-6 pb-24 lg:pb-8 max-w-[1440px] mx-auto">
           <Routes>
             <Route path="/" element={<DashboardOverview />} />
-            <Route path="/markets" element={<MarketsPage />} />
+            <Route path="/markets" element={<RedirectTo to="/dashboard/strategy?tab=marches" />} />
             <Route path="/trade" element={<TradePage />} />
-            <Route path="/trader" element={<TradePage />} />
+            <Route path="/trader" element={<RedirectTo to="/dashboard/trade" />} />
             <Route path="/bots/:id" element={<BotDetailPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
             <Route path="/network" element={<NetworkPage />} />
-            <Route path="/strategy" element={<StrategyPage />} />
+            <Route path="/strategy" element={<StrategyHubPage />} />
             <Route path="/announcements" element={<AnnouncementsPage />} />
-            <Route path="/signals" element={<SignalsPage />} />
-            <Route path="/deposits" element={<DepositsPage />} />
-            <Route path="/withdrawals" element={<WithdrawalsPage />} />
+            <Route path="/signals" element={<RedirectTo to="/dashboard/trade?tab=manuel" />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/deposits" element={<RedirectTo to="/dashboard/wallet?tab=depot" />} />
+            <Route path="/withdrawals" element={<RedirectTo to="/dashboard/wallet?tab=retrait" />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/settings" element={<ProfilePage />} />
-            <Route path="/investments" element={<PortfolioPage />} />
-            <Route path="/referrals" element={<NetworkPage />} />
+            <Route path="/settings" element={<RedirectTo to="/dashboard/profile" />} />
+            <Route path="/investments" element={<RedirectTo to="/dashboard/portfolio" />} />
+            <Route path="/referrals" element={<RedirectTo to="/dashboard/network" />} />
             <Route path="/support" element={<SupportPage />} />
           </Routes>
         </div>

@@ -1,4 +1,4 @@
-# ArbitrageX
+# Covesting
 
 ## Project info
 
@@ -61,3 +61,16 @@ Build the project with `npm run build` and deploy the `dist` folder to your host
 ## Can I connect a custom domain to my project?
 
 Yes — configure it directly through your hosting provider's domain settings (e.g. Vercel > Project > Settings > Domains).
+
+## Notifications push (Web Push)
+
+1. Générer les clés : `npx web-push generate-vapid-keys`
+2. Front : `VITE_VAPID_PUBLIC_KEY=<clé publique>` (Vercel + `.env`)
+3. Secrets Supabase :
+   `supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:contact@covesting.com PUSH_WEBHOOK_SECRET=<secret long>`
+4. Déployer : `supabase functions deploy send-push` puis `supabase db push`
+5. Exécuter une fois (SQL Editor) l'`INSERT INTO public.push_settings` en commentaire à la fin de
+   `supabase/migrations/20261110120000_web_push.sql` (même secret que `PUSH_WEBHOOK_SECRET`).
+
+Chaque ligne insérée dans `notifications` déclenche alors un push vers les appareils de l'utilisateur.
+Envoi manuel / broadcast (admin) : `POST /functions/v1/send-push` avec `{ "broadcast": true, "title": "...", "body": "...", "url": "/dashboard" }`.

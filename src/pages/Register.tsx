@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Logo } from "@/components/brand/Logo";
+import { CovsBadge } from "@/components/brand/CovsToken";
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -110,19 +112,18 @@ export default function Register() {
 
   return (
     <div
-      className="min-h-screen bg-[#04070d] flex items-center justify-center px-4 py-12"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
+      className="min-h-screen bg-[#181A20] flex items-center justify-center px-4 py-12"
+      style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white/5 border border-white/10 rounded-2xl px-8 py-10"
+        className="w-full max-w-md bg-white/5 border border-white/10 rounded-lg px-8 py-10"
       >
-        <div className="mb-10 text-center mx-auto inline-block max-w-[160px] w-full">
-          <Link to="/" className="flex items-center justify-center gap-2">
-            <img src="/images/logo/logo.svg" alt="logo" className="h-8 w-auto" />
-          </Link>
+        <div className="mb-10 text-center flex flex-col items-center gap-3">
+          <Logo size={40} variant="dark" className="justify-center" />
+          <CovsBadge />
         </div>
 
         <Button
@@ -140,7 +141,7 @@ export default function Register() {
         </Button>
 
         <span className="z-[1] relative my-8 block text-center before:content-[''] before:absolute before:h-px before:w-[40%] before:bg-white/10 before:left-0 before:top-3 after:content-[''] after:absolute after:h-px after:w-[40%] after:bg-white/10 after:top-3 after:right-0">
-          <span className="relative z-10 inline-block px-3 text-base text-white bg-[#04070d]">OU</span>
+          <span className="relative z-10 inline-block px-3 text-base text-white bg-[#181A20]">OU</span>
         </span>
 
         <form onSubmit={handleRegister}>
@@ -152,7 +153,7 @@ export default function Register() {
               value={formData.fullName}
               onChange={handleChange}
               required
-              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#6bd672] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
+              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#FCD535] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
             />
           </div>
 
@@ -164,7 +165,7 @@ export default function Register() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#6bd672] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
+              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#FCD535] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
             />
           </div>
 
@@ -176,7 +177,7 @@ export default function Register() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 pr-11 h-auto text-base text-white placeholder:text-white/40 focus:border-[#6bd672] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
+              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 pr-11 h-auto text-base text-white placeholder:text-white/40 focus:border-[#FCD535] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
             />
             <button
               type="button"
@@ -195,7 +196,7 @@ export default function Register() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#6bd672] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
+              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#FCD535] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
             />
           </div>
 
@@ -206,7 +207,7 @@ export default function Register() {
               placeholder="Code de parrainage (optionnel)"
               value={formData.referralCode}
               onChange={handleChange}
-              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#6bd672] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
+              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#FCD535] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
             />
           </div>
 
@@ -214,7 +215,7 @@ export default function Register() {
             <Button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center text-lg font-medium justify-center rounded-md bg-[#6bd672] px-5 py-6 text-black transition duration-300 ease-in-out hover:bg-transparent hover:text-[#6bd672] border-[#6bd672] border"
+              className="flex w-full items-center text-lg font-medium justify-center rounded-md bg-[#FCD535] px-5 py-6 text-[#181A20] transition duration-300 ease-in-out hover:bg-transparent hover:text-[#FCD535] border-[#FCD535] border"
             >
               {loading ? 'Création du compte...' : 'Créer mon compte'}
             </Button>
@@ -223,13 +224,13 @@ export default function Register() {
 
         <p className="mb-4 text-white/70 text-base max-w-2xs mx-auto text-center">
           En créant un compte vous acceptez notre{' '}
-          <a href="#" className="text-[#6bd672] hover:underline">
+          <a href="#" className="text-[#FCD535] hover:underline">
             politique de confidentialité
           </a>
         </p>
         <p className="text-white/70 text-base text-center">
           Déjà un compte ?
-          <Link to="/login" className="pl-2 text-[#6bd672] hover:underline">
+          <Link to="/login" className="pl-2 text-[#FCD535] hover:underline">
             Se connecter
           </Link>
         </p>

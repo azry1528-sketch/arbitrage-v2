@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Logo } from "@/components/brand/Logo";
+import { CovsBadge } from "@/components/brand/CovsToken";
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -72,19 +74,18 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen bg-[#04070d] flex items-center justify-center px-4 py-12"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
+      className="min-h-screen bg-[#181A20] flex items-center justify-center px-4 py-12"
+      style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white/5 border border-white/10 rounded-2xl px-8 py-10"
+        className="w-full max-w-md bg-white/5 border border-white/10 rounded-lg px-8 py-10"
       >
-        <div className="mb-10 text-center mx-auto inline-block max-w-[160px] w-full">
-          <Link to="/" className="flex items-center justify-center gap-2">
-            <img src="/images/logo/logo.svg" alt="logo" className="h-8 w-auto" />
-          </Link>
+        <div className="mb-10 text-center flex flex-col items-center gap-3">
+          <Logo size={40} variant="dark" className="justify-center" />
+          <CovsBadge />
         </div>
 
         <Button
@@ -102,7 +103,7 @@ export default function Login() {
         </Button>
 
         <span className="z-[1] relative my-8 block text-center before:content-[''] before:absolute before:h-px before:w-[40%] before:bg-white/10 before:left-0 before:top-3 after:content-[''] after:absolute after:h-px after:w-[40%] after:bg-white/10 after:top-3 after:right-0">
-          <span className="relative z-10 inline-block px-3 text-base text-white bg-[#04070d]">OU</span>
+          <span className="relative z-10 inline-block px-3 text-base text-white bg-[#181A20]">OU</span>
         </span>
 
         <form onSubmit={handleLogin}>
@@ -113,7 +114,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#6bd672] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
+              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 h-auto text-base text-white placeholder:text-white/40 focus:border-[#FCD535] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
             />
           </div>
           <div className="mb-[22px] relative">
@@ -123,7 +124,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 pr-11 h-auto text-base text-white placeholder:text-white/40 focus:border-[#6bd672] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
+              className="w-full rounded-md border border-white/10 border-solid bg-transparent px-5 py-3 pr-11 h-auto text-base text-white placeholder:text-white/40 focus:border-[#FCD535] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none transition"
             />
             <button
               type="button"
@@ -138,19 +139,19 @@ export default function Login() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-[#6bd672] text-black w-full py-6 rounded-lg text-lg font-medium border border-[#6bd672] hover:text-[#6bd672] hover:bg-transparent transition-all duration-300"
+              className="bg-[#FCD535] text-[#181A20] w-full py-6 rounded-lg text-lg font-medium border border-[#FCD535] hover:text-[#FCD535] hover:bg-transparent transition-all duration-300"
             >
               {loading ? 'Connexion...' : 'Se connecter'}
             </Button>
           </div>
         </form>
 
-        <a href="#" className="mb-2 block text-base text-white/70 hover:text-[#6bd672] text-center">
+        <a href="#" className="mb-2 block text-base text-white/70 hover:text-[#FCD535] text-center">
           Mot de passe oublié ?
         </a>
         <p className="text-white/70 text-base text-center">
           Pas encore membre ?{' '}
-          <Link to="/register" className="text-[#6bd672] hover:underline">
+          <Link to="/register" className="text-[#FCD535] hover:underline">
             S'inscrire
           </Link>
         </p>

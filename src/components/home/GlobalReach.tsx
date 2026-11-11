@@ -36,7 +36,7 @@ const GlobalReach = () => {
               className="flex flex-col items-center border border-white/10 gap-4 bg-white/5 py-4 md:py-8 px-5 md:px-6 rounded-md ring-0 shadow-none"
             >
               <CardContent className="p-0 flex flex-col items-center gap-4">
-                <h3 className="text-3xl font-black text-[#6bd672]">
+                <h3 className="text-3xl font-black text-[#FCD535]">
                   {item.count === 247 ? "24/7" : (
                     <>
                       {item.prefix}

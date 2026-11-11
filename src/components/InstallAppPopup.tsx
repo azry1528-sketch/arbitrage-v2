@@ -55,7 +55,7 @@ export function InstallAppPopup({ open, onClose }: InstallAppPopupProps) {
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent
         hideClose
-        className="sm:max-w-sm p-0 overflow-hidden border-2 border-primary/40 shadow-[0_0_60px_rgba(212,175,55,0.25)]"
+        className="sm:max-w-sm p-0 overflow-hidden border-2 border-primary/40"
       >
         <button
           onClick={onClose}
@@ -66,12 +66,10 @@ export function InstallAppPopup({ open, onClose }: InstallAppPopupProps) {
         </button>
 
         {/* Bandeau supérieur */}
-        <div className="bg-gradient-to-br from-primary/20 via-secondary to-accent/20 px-5 pt-6 pb-4 text-center">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-pulse-glow">
-            <Zap className="w-7 h-7 text-primary-foreground" />
-          </div>
+        <div className="bg-secondary px-5 pt-6 pb-4 text-center">
+          <img src="/images/logo/covesting-icon.png" alt="Covesting" className="w-14 h-14 mx-auto mb-3 rounded-xl object-cover animate-pulse-glow" />
           <h2 className="text-lg font-serif font-bold">
-            Installez <span className="text-gradient-gold">ArbiFlow</span>
+            Installez <span className="text-gradient-gold">Covesting</span>
           </h2>
           <p className="text-xs text-muted-foreground mt-1.5">
             Ajoutez l'application sur votre appareil pour un accès plus rapide,

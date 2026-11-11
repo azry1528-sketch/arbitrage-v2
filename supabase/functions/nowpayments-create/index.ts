@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
         price_currency: "usd",
         pay_currency: currency,
         order_id: `dep_${profile.id}_${Date.now()}`,
-        order_description: `Dépôt ArbiFlow pour utilisateur ${profile.id}`,
+        order_description: `Dépôt Covesting pour utilisateur ${profile.id}`,
       }),
     });
 

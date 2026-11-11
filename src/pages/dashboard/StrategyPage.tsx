@@ -164,7 +164,7 @@ export default function StrategyPage() {
       </div>
 
       {/* Allocation totale */}
-      <div className={`rounded-2xl px-4 py-3 border text-sm flex items-center justify-between ${totalAllocation > 100 ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-card border-border/60 text-muted-foreground'}`}>
+      <div className={`rounded-lg px-4 py-3 border text-sm flex items-center justify-between ${totalAllocation > 100 ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-card border-border/60 text-muted-foreground'}`}>
         <span>Allocation de capital totale</span>
         <span className="font-semibold">{totalAllocation}% {totalAllocation > 100 && '— dépasse 100%'}</span>
       </div>
@@ -179,7 +179,7 @@ export default function StrategyPage() {
 
           return (
             <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className={`rounded-[20px] p-5 flex flex-col gap-4 bg-card border transition-colors duration-200 ${on ? 'border-primary/40' : 'border-border/60 opacity-90'}`}>
+              className={`rounded-lg p-5 flex flex-col gap-4 bg-card border transition-colors duration-200 ${on ? 'border-primary/40' : 'border-border/60 opacity-90'}`}>
 
               <div className="flex items-start justify-between">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center relative">
@@ -298,7 +298,7 @@ export default function StrategyPage() {
       </div>
 
       {/* Comparatif */}
-      <div className="rounded-[20px] p-5 bg-card border border-border/60">
+      <div className="rounded-lg p-5 bg-card border border-border/60">
         <h3 className="font-semibold text-sm mb-3">Comparatif des stratégies</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

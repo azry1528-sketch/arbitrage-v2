@@ -14,7 +14,7 @@ const TimeLine = () => {
           >
             <div className="flex flex-col gap-4">
               <p className="text-white font-medium">
-                Nous livrons <span className="text-[#6bd672]">la meilleure solution</span>
+                Nous livrons <span className="text-[#FCD535]">la meilleure solution</span>
               </p>
               <h2 className="text-white sm:text-5xl text-3xl font-medium lg:w-[80%] mx-auto mb-16">
                 Comment fonctionne l'arbitrage sur notre plateforme
@@ -43,12 +43,12 @@ const TimeLine = () => {
                   <h3 className="text-white/80 text-2xl mb-3">Détection</h3>
                   <p className="text-lg text-white/40">Scan continu des écarts de prix entre exchanges</p>
                 </div>
-                <div className="bg-[#6bd672]/15 backdrop-blur-sm px-6 py-2 h-fit rounded-full">
+                <div className="bg-[#FCD535]/15 px-6 py-2 h-fit rounded-full">
                   <img src="/images/solution/solution-icon-1.svg" alt="Détection" width={44} height={44} className="w-16 h-16" />
                 </div>
               </div>
               <div className="absolute top-36 lg:right-0 -right-20 w-72 flex items-center gap-6">
-                <div className="bg-[#6bd672]/15 backdrop-blur-sm p-6 h-fit rounded-full">
+                <div className="bg-[#FCD535]/15 p-6 h-fit rounded-full">
                   <img src="/images/solution/solution-icon-2.svg" alt="Analyse" width={44} height={44} />
                 </div>
                 <div className="text-left">
@@ -61,12 +61,12 @@ const TimeLine = () => {
                   <h3 className="text-white/80 text-2xl mb-3">Exécution</h3>
                   <p className="text-lg text-white/40">Achat et revente automatisés en quelques millisecondes</p>
                 </div>
-                <div className="bg-[#6bd672]/15 backdrop-blur-sm px-6 py-2 h-fit rounded-full">
+                <div className="bg-[#FCD535]/15 px-6 py-2 h-fit rounded-full">
                   <img src="/images/solution/solution-icon-3.svg" alt="Exécution" width={44} height={44} className="w-16 h-16" />
                 </div>
               </div>
               <div className="absolute bottom-36 lg:right-0 -right-20 w-72 flex items-center gap-6">
-                <div className="bg-[#6bd672]/15 backdrop-blur-sm px-6 py-2 h-fit rounded-full">
+                <div className="bg-[#FCD535]/15 px-6 py-2 h-fit rounded-full">
                   <img src="/images/solution/solution-icon-4.svg" alt="Encaissement" width={44} height={44} className="w-16 h-16" />
                 </div>
                 <div className="text-left">
@@ -79,7 +79,7 @@ const TimeLine = () => {
             <div className="grid sm:grid-cols-2 gap-8 md:hidden">
               {timelineData.map((item, index) => (
                 <div key={index} className="flex items-center gap-6">
-                  <div className="bg-[#6bd672]/15 p-6 rounded-full">
+                  <div className="bg-[#FCD535]/15 p-6 rounded-full">
                     <img src={item.icon} alt={item.title} width={44} height={44} />
                   </div>
                   <div className="text-start">

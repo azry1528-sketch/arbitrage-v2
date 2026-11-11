@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 // réellement branché sur le thème de l'app ; les autres réglages sont des
 // préférences locales à l'appareil (comme dans le template d'origine).
 export function AppearanceSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
-  const { theme, setTheme } = useLanguage();
+  const { theme, setTheme, accent, setAccent } = useLanguage();
   const [autoUpdates, setAutoUpdates] = useState(true);
   const [showOnline, setShowOnline] = useState(true);
   const [notifPopup, setNotifPopup] = useState(true);
@@ -26,6 +26,28 @@ export function AppearanceSheet({ open, onOpenChange }: { open: boolean; onOpenC
           <div className="flex items-center justify-between py-2">
             <Label htmlFor="theme-switch">Thème sombre</Label>
             <Switch id="theme-switch" checked={theme === 'dark'} onCheckedChange={(v) => setTheme(v ? 'dark' : 'light')} />
+          </div>
+          <div className="py-2">
+            <Label className="block mb-2">Couleur principale</Label>
+            <div className="flex gap-3">
+              {([
+                { id: 'gold', label: 'Jaune', color: '#FCD535' },
+                { id: 'blue', label: 'Bleu', color: '#3B82F6' },
+              ] as const).map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setAccent(c.id)}
+                  aria-pressed={accent === c.id}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    accent === c.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'
+                  }`}
+                >
+                  <span className="w-4 h-4 rounded-full" style={{ background: c.color }} />
+                  {c.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

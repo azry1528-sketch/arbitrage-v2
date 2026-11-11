@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['DM Sans', 'system-ui', 'sans-serif'],
-        serif: ['DM Sans', 'system-ui', 'sans-serif'],
+        sans: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+        serif: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -101,8 +102,8 @@ export default {
           to: { opacity: "1", transform: "scale(1)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(124 57% 75% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(124 57% 75% / 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 0 hsl(49 97% 59% / 0)" },
+          "50%": { boxShadow: "0 0 0 hsl(49 97% 59% / 0)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
@@ -130,15 +131,15 @@ export default {
         marquee: "marquee linear infinite",
       },
       backgroundImage: {
-        "gradient-gold": "linear-gradient(135deg, hsl(124 57% 75%) 0%, hsl(140 55% 68%) 50%, hsl(150 50% 60%) 100%)",
-        "gradient-dark": "linear-gradient(180deg, hsl(220 20% 6%) 0%, hsl(220 20% 3%) 100%)",
-        "gradient-card": "linear-gradient(145deg, hsl(220 20% 9%) 0%, hsl(220 20% 5%) 100%)",
+        "gradient-gold": "linear-gradient(0deg, hsl(49 97% 59%), hsl(49 97% 59%))",
+        "gradient-dark": "none",
+        "gradient-card": "none",
         "gradient-radial": "radial-gradient(ellipse at center, var(--tw-gradient-stops))",
       },
       boxShadow: {
-        "glow-gold": "0 0 40px hsl(124 57% 75% / 0.3)",
-        "glow-gold-strong": "0 0 60px hsl(124 57% 75% / 0.5)",
-        card: "0 4px 24px hsl(0 0% 0% / 0.4)",
+        "glow-gold": "none",
+        "glow-gold-strong": "none",
+        card: "none",
         elevated: "0 8px 40px hsl(0 0% 0% / 0.5)",
       },
     },

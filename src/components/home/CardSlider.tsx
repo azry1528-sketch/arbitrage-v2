@@ -7,7 +7,7 @@ const CardSlider = () => {
     <div className="pt-14 flex flex-col gap-10">
       <div className="flex flex-col gap-3 items-center justify-center text-center">
         <p className="text-white font-medium">
-          Cryptos <span className="text-[#6bd672]">en vedette</span>
+          Cryptos <span className="text-[#FCD535]">en vedette</span>
         </p>
         <h2 className="sm:text-5xl text-3xl text-white font-medium">
           Suivi des principales cryptomonnaies

@@ -7,7 +7,7 @@ const BrandLogo = () => {
       <div className="gap-4">
         <div className="flex justify-center text-center py-4 relative">
           <p className="text-white font-medium">
-            Une technologie <span className="text-[#6bd672]">approuvée à travers le monde</span>
+            Une technologie <span className="text-[#FCD535]">approuvée à travers le monde</span>
           </p>
         </div>
         <div className="py-3">

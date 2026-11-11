@@ -30,7 +30,7 @@ const Work = () => {
           <motion.div {...bottomAnimation} className="lg:col-span-7 col-span-12">
             <div className="flex flex-col gap-3">
               <p className="text-white font-medium">
-                Pourquoi choisir <span className="text-[#6bd672]">ArbiFlow</span>
+                Pourquoi choisir <span className="text-[#FCD535]">Covesting</span>
               </p>
               <h2 className="sm:text-5xl text-3xl text-white lg:w-full font-medium">
                 Les atouts de notre plateforme d'arbitrage crypto
@@ -39,7 +39,7 @@ const Work = () => {
             <div className="grid md:grid-cols-2 gap-7 mt-11">
               {services.map((service, index) => (
                 <div key={index} className="flex items-center gap-5">
-                  <div className="p-3 bg-[#6bd672]/15 rounded-full">
+                  <div className="p-3 bg-[#FCD535]/15 rounded-full">
                     <img src={service.icon} alt={`${service.text} icon`} width={25} height={25} />
                   </div>
                   <p className="text-white font-medium">{service.text}</p>

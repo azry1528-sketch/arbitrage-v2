@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Logo } from '@/components/brand/Logo';
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -182,7 +183,7 @@ function UsersManagement() {
                 <tr key={user.id} className="hover:bg-secondary/30">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs text-primary-foreground font-bold">
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs text-primary-foreground font-bold">
                         {user.full_name?.charAt(0) || 'U'}
                       </div>
                       <span className="font-medium">{user.full_name || 'N/A'}</span>
@@ -876,10 +877,10 @@ export default function AdminDashboard() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-sidebar-border">
-            <NavLink to="/" className="flex items-center gap-2">
-              <Zap className="w-8 h-8 text-primary" />
-              <span className="text-xl font-serif font-bold text-gradient-gold">Admin</span>
-            </NavLink>
+            <div className="flex flex-col gap-1">
+              <Logo size={32} variant="dark" />
+              <span className="text-[11px] uppercase tracking-widest text-primary font-semibold pl-10">Admin · Token COVS</span>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -907,7 +908,7 @@ export default function AdminDashboard() {
           {/* User Section */}
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                 A
               </div>
               <div className="flex-1 min-w-0">
@@ -930,7 +931,7 @@ export default function AdminDashboard() {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-background/80 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -938,7 +939,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="flex-1 min-h-screen">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+        <header className="sticky top-0 z-30 bg-background/80 border-b border-border">
           <div className="flex items-center justify-between px-6 h-16">
             <button
               className="lg:hidden p-2"

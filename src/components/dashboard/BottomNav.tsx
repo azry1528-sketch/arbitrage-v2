@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BarChart3, Zap, Users, Wallet } from 'lucide-react';
+import { LayoutDashboard, Layers, Zap, Users, Wallet } from 'lucide-react';
 
 const items = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Accueil', end: true },
-  { to: '/dashboard/markets', icon: BarChart3, label: 'Marchés' },
+  { to: '/dashboard/strategy', icon: Layers, label: 'Stratégies' },
   { to: '/dashboard/trade', icon: Zap, label: 'Trade' },
   { to: '/dashboard/network', icon: Users, label: 'Réseau' },
   { to: '/dashboard/portfolio', icon: Wallet, label: 'Actifs' },
@@ -13,7 +13,7 @@ const items = [
 // l'app de référence (5 icônes fines, actif en jaune, inactif en gris).
 export function BottomNav() {
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 border-t border-border">
       <div className="flex items-stretch justify-between px-2">
         {items.map((item) => (
           <NavLink

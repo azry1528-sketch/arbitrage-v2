@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'arbiflow_favorite_coins';
+const STORAGE_KEY = 'covesting_favorite_coins';
 
 // Favoris persistants côté appareil (localStorage) — pas de table dédiée
 // côté backend pour l'instant, mais le comportement est bien réel et
@@ -8,7 +8,7 @@ const STORAGE_KEY = 'arbiflow_favorite_coins';
 export function useFavorites() {
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem('arbiflow_favorite_coins');
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];

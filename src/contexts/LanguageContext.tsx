@@ -59,9 +59,17 @@ interface LanguageContextType {
   t: (key: string) => string;
   theme: 'dark' | 'light';
   setTheme: (t: 'dark' | 'light') => void;
+  accent: Accent;
+  setAccent: (a: Accent) => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export type Accent = 'gold' | 'blue';
+
+function applyAccent(a: Accent) {
+  document.documentElement.classList.toggle('accent-blue', a === 'blue');
+}
 
 function applyTheme(t: 'dark' | 'light') {
   document.documentElement.classList.toggle('light-theme', t === 'light');
@@ -75,7 +83,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     () => (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark'
   );
 
-  useEffect(() => { applyTheme(theme); }, []);
+  const [accent, setAccentState] = useState<Accent>(
+    () => (localStorage.getItem('app_accent') as Accent) || 'gold'
+  );
+
+  useEffect(() => { applyTheme(theme); applyAccent(accent); }, []);
+
+  const setAccent = (a: Accent) => {
+    setAccentState(a);
+    localStorage.setItem('app_accent', a);
+    applyAccent(a);
+  };
 
   const setLanguage = (l: Lang) => {
     setLanguageState(l);
@@ -91,7 +109,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (key: string) => DICT[language]?.[key] || DICT.fr[key] || key;
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, theme, setTheme }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, theme, setTheme, accent, setAccent }}>
       {children}
     </LanguageContext.Provider>
   );

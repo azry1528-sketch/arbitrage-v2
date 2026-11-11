@@ -275,7 +275,7 @@ function MiniSparkline({ data, positive }: { data?: number[]; positive: boolean 
 
 function MoverCard({ title, items, onMore, period, showVolume }: { title: string; items: CryptoPrice[]; onMore: () => void; period?: Period; showVolume?: boolean }) {
   return (
-    <div className="rounded-2xl p-4 bg-card border border-border/60">
+    <div className="rounded-lg p-4 bg-card border border-border/60">
       <div className="flex items-center justify-between mb-2">
         <h4 className="text-xs font-semibold text-muted-foreground">{title}</h4>
         <button onClick={onMore} className="flex items-center text-[11px] text-muted-foreground hover:text-primary transition-colors duration-200">
@@ -333,7 +333,7 @@ function TokenDetail({ token, onClose, isFav, onToggleFav }: { token: CryptoPric
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
       onClick={onClose}>
       <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}

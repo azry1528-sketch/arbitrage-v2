@@ -11,6 +11,7 @@ import Upgrade from '@/components/home/Upgrade';
 import Perks from '@/components/home/Perks';
 import Faq from '@/components/home/Faq';
 import Footer from '@/components/home/Footer';
+import TokenCovs from '@/components/home/TokenCovs';
 
 const Index = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -19,11 +20,12 @@ const Index = () => {
   if (user) return <Navigate to={isAdmin ? '/admin' : '/dashboard'} replace />;
 
   return (
-    <div className="min-h-screen bg-[#04070d]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#181A20]" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
       <Header />
       <main>
         <Hero />
         <Work />
+        <TokenCovs />
         <GlobalReach />
         <TimeLine />
         <Platform />

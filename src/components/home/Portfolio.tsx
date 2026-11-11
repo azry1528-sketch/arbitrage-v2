@@ -24,7 +24,7 @@ const Portfolio = () => {
           >
             <div className="flex flex-col gap-4">
               <p className="text-white font-medium">
-                Suivi <span className="text-[#6bd672]">en temps réel</span>
+                Suivi <span className="text-[#FCD535]">en temps réel</span>
               </p>
               <h2 className="text-white sm:text-5xl text-3xl mb-4 font-medium">
                 Suivez vos gains d'arbitrage dès aujourd'hui
@@ -39,7 +39,7 @@ const Portfolio = () => {
                 {portfolioData.map((item, index) => (
                   <tr key={index} className="border-b border-white/10">
                     <td className="py-5">
-                      <div className="bg-[#6bd672]/20 p-3 rounded-full w-fit">
+                      <div className="bg-[#FCD535]/20 p-3 rounded-full w-fit">
                         <img src={item.image} alt={item.title} width={24} height={24} />
                       </div>
                     </td>

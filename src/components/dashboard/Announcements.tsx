@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Megaphone, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { CovsBanner } from '@/components/brand/CovsToken';
+import { COVS_INFO_URL } from '@/lib/brand';
 
 interface Announcement {
   id: string;
@@ -28,28 +30,33 @@ export function Announcements({ compact = false }: { compact?: boolean }) {
       });
   }, []);
 
-  if (!loading && items.length === 0) return null;
-  if (loading) return null;
+  // Le bandeau Token COVS reste toujours affiché en premier, même sans annonce.
+  const covs = (
+    <CovsBanner to={COVS_INFO_URL} cta="En savoir plus" compact={compact} className={compact ? "" : "mb-3"} />
+  );
 
-  // Carte pleine hauteur — même gabarit que le widget bots actifs juste
-  // au-dessus, pour que les deux ensemble égalent la hauteur de la carte
-  // solde à côté.
+  // Carte unique "Annonces" : le bloc Token COVS est dedans, au-dessus de
+  // la dernière annonce. Elle prend toute la hauteur restante de la colonne.
   if (compact) {
     const a = items[0];
     return (
-      <Link to="/dashboard/announcements"
-        className="flex-1 flex flex-col justify-center gap-4 rounded-[20px] px-5 py-6 bg-card border border-border/60 transition-colors duration-200 hover:border-primary/40">
+      <div className="flex-1 flex flex-col gap-3 rounded-lg p-4 bg-card border border-border/60">
         <div className="flex items-center justify-between">
-          <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Megaphone className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2">
+            <Megaphone className="w-4 h-4 text-primary" />
+            <h3 className="font-bold text-sm">Annonces</h3>
           </div>
-          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          <Link to="/dashboard/announcements" className="text-xs text-primary hover:underline">Voir plus</Link>
         </div>
-        <div>
-          <div className="text-sm font-semibold line-clamp-1">{a.title}</div>
-          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.message}</div>
-        </div>
-      </Link>
+        {covs}
+        {a && (
+          <Link to="/dashboard/announcements"
+            className="rounded-lg p-3 bg-primary/5 border border-primary/20 transition-colors duration-200 hover:border-primary/40">
+            <div className="text-sm font-semibold line-clamp-1">{a.title}</div>
+            <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.message}</div>
+          </Link>
+        )}
+      </div>
     );
   }
 
@@ -62,6 +69,7 @@ export function Announcements({ compact = false }: { compact?: boolean }) {
         </div>
         <Link to="/dashboard/announcements" className="text-xs text-primary hover:underline">Voir plus</Link>
       </div>
+      {covs}
       <div className="space-y-2">
         {items.map((a, i) => (
           <motion.div

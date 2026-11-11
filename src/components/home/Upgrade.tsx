@@ -8,7 +8,7 @@ const Upgrade = () => {
         <div className="grid lg:grid-cols-2 gap-10 items-center">
           <div>
             <p className="text-white font-medium">
-              ArbiFlow <span className="text-[#6bd672]">évolue</span>
+              Covesting <span className="text-[#FCD535]">évolue</span>
             </p>
             <h2 className="text-white sm:text-5xl text-3xl font-medium mb-5">
               Laissez vos bots travailler pour vous
@@ -19,7 +19,7 @@ const Upgrade = () => {
             <div className="grid sm:grid-cols-2 gap-5">
               {upgradeData.map((item, index) => (
                 <div key={index} className="flex gap-3">
-                  <CheckCircle2 className="text-[#6bd672] shrink-0" width={24} height={24} />
+                  <CheckCircle2 className="text-[#FCD535] shrink-0" width={24} height={24} />
                   <h3 className="text-lg text-white/50">{item.title}</h3>
                 </div>
               ))}

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "./BrandLogo";
 import CardSlider from "./CardSlider";
+import { CovsBadge } from "@/components/brand/CovsToken";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -29,10 +30,11 @@ const Hero = () => {
               <div className="flex gap-6 items-center lg:justify-start justify-center">
                 <Badge
                   variant="outline"
-                  className="text-base py-1.5 px-4 bg-[#6bd672]/10 rounded-full border border-white/10 text-[#6bd672] font-medium h-9"
+                  className="text-base py-1.5 px-4 bg-[#FCD535]/10 rounded-full border border-white/10 text-[#FCD535] font-medium h-9"
                 >
                   L'arbitrage crypto nouvelle génération
                 </Badge>
+                <CovsBadge className="hidden sm:inline-flex" />
               </div>
               <h1 className="font-medium xl:text-[72px] md:text-6xl sm:text-5xl text-4xl text-white leading-[1.1]">
                 Exploitez les écarts de prix crypto, automatiquement
@@ -42,10 +44,10 @@ const Hero = () => {
                 dès qu'un écart de prix rentable apparaît — pour un profit récurrent, sans intervention manuelle.
               </p>
             </div>
-            <div className="flex items-center md:justify-start justify-center gap-8">
+            <div className="flex flex-wrap items-center md:justify-start justify-center gap-4">
               <Button
                 onClick={() => navigate("/register")}
-                className="text-base bg-[#6bd672] hover:bg-[#6bd672]/80 flex items-center gap-2 border border-[#6bd672] rounded-lg font-semibold text-black py-6 px-7 cursor-pointer h-12"
+                className="text-base bg-[#FCD535] hover:bg-[#FCD535]/80 flex items-center gap-2 border border-[#FCD535] rounded-lg font-semibold text-[#181A20] py-6 px-7 cursor-pointer h-12"
               >
                 Découvrir
                 <img src="/images/icons/icon-arrow.svg" alt="arrow-icon" width={20} height={20} />

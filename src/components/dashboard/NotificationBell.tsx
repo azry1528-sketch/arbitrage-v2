@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, BellRing, BellOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { isPushSupported, pushUnsupportedReason, needsIosInstall, getCurrentSubscription, enablePush, disablePush, syncPush } from '@/lib/push';
 
 interface Notif {
   id: string;
@@ -19,6 +21,46 @@ export function NotificationBell() {
   const { profile } = useAuth();
   const [items, setItems] = useState<Notif[]>([]);
   const [tab, setTab] = useState<'all' | 'unread'>('all');
+  const { toast } = useToast();
+  const [pushOn, setPushOn] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const pushSupported = isPushSupported();
+  const iosHint = needsIosInstall();
+  useEffect(() => {
+    const reason = pushUnsupportedReason();
+    if (reason) console.warn('[push] indisponible :', reason);
+  }, []);
+
+  // État push au chargement + resynchronisation de l'abonnement en base
+  useEffect(() => {
+    if (!profile?.id || !pushSupported) return;
+    syncPush(profile.id).catch(() => {});
+    getCurrentSubscription().then((sub) => setPushOn(!!sub && Notification.permission === 'granted')).catch(() => {});
+  }, [profile?.id, pushSupported]);
+
+  const togglePush = async () => {
+    if (!profile?.id) return;
+    setPushBusy(true);
+    try {
+      if (pushOn) {
+        await disablePush();
+        setPushOn(false);
+        toast({ title: 'Notifications push désactivées' });
+      } else {
+        const res = await enablePush(profile.id);
+        if (res === 'granted') {
+          setPushOn(true);
+          toast({ title: 'Notifications push activées' });
+        } else {
+          toast({ title: 'Autorisation refusée', description: "Autorise les notifications dans les réglages du navigateur.", variant: 'destructive' });
+        }
+      }
+    } catch (e: any) {
+      toast({ title: 'Erreur', description: e?.message || 'Impossible de modifier les notifications push', variant: 'destructive' });
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const fetch = async () => {
     if (!profile?.id) return;
@@ -67,6 +109,22 @@ export function NotificationBell() {
           <div className="font-semibold">Notifications</div>
           {unread > 0 && <button onClick={markAllRead} className="text-xs text-primary hover:underline">Tout marquer lu</button>}
         </div>
+        {pushSupported ? (
+          <button
+            onClick={togglePush}
+            disabled={pushBusy}
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs border-b border-border text-left hover:bg-muted/50 transition-colors disabled:opacity-60"
+          >
+            {pushOn ? <BellOff className="w-4 h-4 shrink-0 text-muted-foreground" /> : <BellRing className="w-4 h-4 shrink-0 text-primary" />}
+            <span className="flex-1">{pushOn ? 'Notifications push activées — désactiver' : 'Activer les notifications push'}</span>
+          </button>
+        ) : (
+          <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border">
+            {iosHint
+              ? "Sur iPhone, installe d'abord l'app sur l'écran d'accueil pour activer les notifications push."
+              : "Notifications push indisponibles sur ce navigateur."}
+          </div>
+        )}
         <Tabs value={tab} onValueChange={(v) => setTab(v as 'all' | 'unread')}>
           <TabsList className="w-full rounded-none bg-transparent border-b border-border p-0 h-auto">
             <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-2">

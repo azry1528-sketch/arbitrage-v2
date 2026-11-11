@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Megaphone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { CovsBanner } from '@/components/brand/CovsToken';
+import { COVS_INFO_URL } from '@/lib/brand';
 
 interface Announcement {
   id: string;
@@ -50,6 +52,7 @@ export function AnnouncementsDialog({ open, onClose }: { open: boolean; onClose:
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-1.5 max-h-[50vh] overflow-y-auto">
+          <CovsBanner to={COVS_INFO_URL} cta="En savoir plus" compact className="!rounded-lg !px-3 !py-3" />
           {items.map((a) => (
             <div key={a.id} className="p-2.5 rounded-lg bg-primary/5 border border-primary/20">
               <div className="font-semibold text-xs">{a.title}</div>

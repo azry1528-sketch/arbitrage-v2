@@ -1,7 +1,8 @@
-// Données du template d'accueil (basées sur le template Crypgo / Arbiflow)
+// Données du template d'accueil (basées sur le template Crypgo / Covesting)
 
 export const headerData: { label: string; href: string }[] = [
   { label: "Fonctionnalités", href: "#work" },
+  { label: "Token COVS", href: "#covs" },
   { label: "Avantages", href: "#development" },
   { label: "Services", href: "#portfolio" },
   { label: "Pourquoi nous", href: "#upgrade" },
@@ -49,7 +50,7 @@ export const priceData: {
     title: "Ethereum",
     short: "ETH/USD",
     icon: "/images/icons/icon-ethereum.svg",
-    background: "bg-[#1dc8cd]/15",
+    background: "bg-[#FCD535]/15",
     price: "$3,128.84",
     mark: "$4,878.26 (-35.9%)",
     width: 18,
@@ -71,7 +72,7 @@ export const priceData: {
     title: "Litecoin",
     short: "LTC/USD",
     icon: "/images/icons/icon-litecoin.svg",
-    background: "bg-[#1dc8cd]/15",
+    background: "bg-[#FCD535]/15",
     price: "$86.11",
     mark: "$410.26 (-79.1%)",
     width: 18,
@@ -82,7 +83,7 @@ export const priceData: {
     title: "Solana",
     short: "SOL/USD",
     icon: "/images/icons/icon-solana.svg",
-    background: "bg-[#1dc8cd]/15",
+    background: "bg-[#FCD535]/15",
     price: "$238.70",
     mark: "$259.96 (-8.2%)",
     width: 24,
@@ -93,7 +94,7 @@ export const priceData: {
     title: "Dogecoin",
     short: "DOGE/USD",
     icon: "/images/icons/icon-dogecoin.svg",
-    background: "bg-[#1dc8cd]/15",
+    background: "bg-[#FCD535]/15",
     price: "$0.394",
     mark: "$0.7316 (-46.2%)",
     width: 46,
@@ -148,8 +149,9 @@ export const timelineData: { icon: string; title: string; text: string }[] = [
 ];
 
 export const faqData: { question: string; answer: string }[] = [
-  { question: "Qu'est-ce qu'ArbiFlow ?", answer: "ArbiFlow est une plateforme d'arbitrage crypto : nos bots détectent les écarts de prix entre exchanges et les exploitent automatiquement pour générer un profit récurrent." },
-  { question: "La plateforme est-elle disponible partout ?", answer: "Oui, ArbiFlow est accessible depuis la plupart des pays." },
+  { question: "Qu'est-ce que Covesting ?", answer: "Covesting est une plateforme d'arbitrage crypto : nos bots détectent les écarts de prix entre exchanges et les exploitent automatiquement pour générer un profit récurrent." },
+  { question: "Qu'est-ce que le token COVS ?", answer: "Le COVS est le token de l'écosystème Covesting. Suivez nos annonces pour toutes les actualités du COVS." },
+  { question: "La plateforme est-elle disponible partout ?", answer: "Oui, Covesting est accessible depuis la plupart des pays." },
   { question: "Quelles cryptomonnaies sont prises en charge ?", answer: "Nous prenons en charge Bitcoin, Ethereum, USDC et bien d'autres paires arbitrables." },
   { question: "Mes informations personnelles sont-elles sécurisées ?", answer: "Oui, nous priorisons votre sécurité avec un chiffrement avancé et des protocoles conformes." },
   { question: "Y a-t-il des frais de dépôt ou de retrait ?", answer: "Notre structure de frais est transparente. Consultez la page tarifs pour le détail." },

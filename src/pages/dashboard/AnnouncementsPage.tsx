@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Megaphone, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { CovsBanner } from '@/components/brand/CovsToken';
+import { COVS_INFO_URL } from '@/lib/brand';
 
 interface Announcement {
   id: string;
@@ -30,8 +32,10 @@ export default function AnnouncementsPage() {
     <div className="space-y-5">
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2"><Megaphone className="w-6 h-6 text-primary" /> Annonces</h2>
-        <p className="text-sm text-muted-foreground">Toutes les annonces publiées par l'équipe ArbiFlow</p>
+        <p className="text-sm text-muted-foreground">Toutes les annonces publiées par l'équipe Covesting</p>
       </div>
+
+      <CovsBanner to={COVS_INFO_URL} cta="En savoir plus" />
 
       {loading ? (
         <div className="py-16 text-center text-muted-foreground text-sm">

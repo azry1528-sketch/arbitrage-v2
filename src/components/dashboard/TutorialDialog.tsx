@@ -6,7 +6,7 @@ import { Wallet, Bot, Zap, ArrowUpCircle, ChevronRight, ChevronLeft, Rocket } fr
 const STEPS = [
   {
     icon: Wallet,
-    title: 'Bienvenue sur ArbiFlow 🎉',
+    title: 'Bienvenue sur Covesting 🎉',
     text: "Votre compte a été créé avec succès. Voici un rapide tour pour bien démarrer votre activité d'arbitrage crypto.",
   },
   {

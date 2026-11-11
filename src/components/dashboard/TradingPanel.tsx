@@ -122,7 +122,7 @@ export function TradingPanel({ prices }: { prices: CryptoPrice[] }) {
             {[
               { title: 'Le Bitcoin franchit un nouveau seuil de résistance', author: 'Léa Dubois', time: 'il y a 40 min', body: "Le BTC a testé un nouveau plus haut cette semaine, porté par des volumes en hausse sur les principales plateformes d'échange. Les analystes restent partagés sur la suite de la tendance." },
               { title: 'ETH/USDT : consolidation avant la prochaine mise à jour du réseau', author: 'Marc Petit', time: 'il y a 1 h', body: "Ethereum évolue dans un range serré à l'approche d'une mise à jour réseau majeure, les traders privilégiant la prudence à court terme." },
-              { title: 'Les stablecoins gagnent du terrain sur les marchés émergents', author: 'Équipe ArbiFlow', time: 'il y a 2 h', body: "L'usage des stablecoins continue de progresser comme moyen de paiement transfrontalier, notamment sur les corridors à forte volatilité monétaire locale." },
+              { title: 'Les stablecoins gagnent du terrain sur les marchés émergents', author: 'Équipe Covesting', time: 'il y a 2 h', body: "L'usage des stablecoins continue de progresser comme moyen de paiement transfrontalier, notamment sur les corridors à forte volatilité monétaire locale." },
             ].map((n, i) => (
               <AccordionItem key={i} value={`item-${i}`} className="border border-border rounded-lg px-3">
                 <AccordionTrigger className="text-sm font-semibold hover:no-underline">
@@ -152,9 +152,9 @@ export function TradingPanel({ prices }: { prices: CryptoPrice[] }) {
               </div>
               <div className="space-y-1 max-h-72 overflow-y-auto">
                 {[
-                  { from: 'Support ArbiFlow', subject: 'Votre vérification KYC a été approuvée', time: '2 min' },
+                  { from: 'Support Covesting', subject: 'Votre vérification KYC a été approuvée', time: '2 min' },
                   { from: 'Équipe Sécurité', subject: 'Nouvelle connexion détectée', time: '1 h' },
-                  { from: 'Support ArbiFlow', subject: 'Réponse à votre ticket #4821', time: '3 h' },
+                  { from: 'Support Covesting', subject: 'Réponse à votre ticket #4821', time: '3 h' },
                 ].map((m, i) => (
                   <div key={i} className="p-2 rounded-lg hover:bg-secondary/50 cursor-pointer">
                     <div className="flex items-center justify-between">

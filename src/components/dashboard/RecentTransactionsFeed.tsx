@@ -55,7 +55,7 @@ export function RecentTransactionsFeed() {
   if (loading || items.length === 0) return null;
 
   return (
-    <div className="h-full flex flex-col rounded-[20px] p-5 md:p-6 bg-card border border-border/60">
+    <div className="h-full flex flex-col rounded-lg p-5 md:p-6 bg-card border border-border/60">
       <div className="flex items-center justify-between mb-1">
         <h3 className="font-semibold text-base">Dernières transactions</h3>
         <Link to="/dashboard/portfolio" className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary transition-colors duration-200">

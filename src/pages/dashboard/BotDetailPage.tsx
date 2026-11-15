@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useVisiblePolling } from '@/hooks/useVisiblePolling';
 import { useTrading } from '@/contexts/TradingContext';
 import { getStrategy } from '@/lib/botStrategies';
 import { BotEditDialog, BotEditPayload } from '@/components/dashboard/BotEditDialog';
@@ -94,7 +95,7 @@ export default function BotDetailPage() {
 
   const fetchLogs = async () => {
     if (!id) return;
-    const { data } = await supabase.from('bot_logs' as any).select('*').eq('bot_id', id).order('created_at', { ascending: false }).limit(50);
+    const { data } = await supabase.from('bot_logs' as any).select('id, step, message, created_at, crypto_pair, buy_exchange, sell_exchange, buy_price, sell_price, quantity, spread_pct, profit, credits_used').eq('bot_id', id).order('created_at', { ascending: false }).limit(50);
     setLogs(data || []);
   };
 
@@ -102,10 +103,7 @@ export default function BotDetailPage() {
 
   // Poll for new activity while the bot may be producing logs (le moteur
   // serveur - pg_cron - continue de générer des trades même hors ligne).
-  useEffect(() => {
-    const t = setInterval(() => { fetchBot(); fetchLogs(); fetchSessionStats(); }, 3000);
-    return () => clearInterval(t);
-  }, [id]);
+  useVisiblePolling(() => { fetchBot(); fetchLogs(); fetchSessionStats(); }, 10000, [id]);
 
   // Révèle les entrées du journal une par une, avec un léger délai,
   // pour donner l'impression que chaque étape prend du temps à s'exécuter.

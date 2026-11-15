@@ -18,6 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useCryptoPrices } from '@/hooks/useCryptoPrices';
+import { useVisiblePolling } from '@/hooks/useVisiblePolling';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeDecimalInput } from '@/lib/utils';
 import { validateWalletAddress, getWalletAddressError } from '@/lib/walletValidation';
@@ -95,11 +96,9 @@ function DashboardOverview() {
     setTodayGain(tradesGain + investmentGain);
   };
 
-  useEffect(() => {
-    loadTodayGain();
-    const timer = setInterval(loadTodayGain, 8000);
-    return () => clearInterval(timer);
-  }, [profile?.id]);
+  useEffect(() => { loadTodayGain(); }, [profile?.id]);
+  // Rafraîchissement toutes les 60 s, seulement si l'onglet est visible.
+  useVisiblePolling(loadTodayGain, 60000, [profile?.id]);
 
   const balance = Number(profile?.balance || 0);
   const todayPct = balance > 0 ? ((todayGain / balance) * 100).toFixed(2) : '0.00';

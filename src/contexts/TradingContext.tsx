@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVisiblePolling } from '@/hooks/useVisiblePolling';
 
 // Un "runner" = une session d'arbitrage active (manuelle OU liée à un bot).
 //
@@ -33,7 +34,6 @@ const TradingContext = createContext<TradingContextType | undefined>(undefined);
 export function TradingProvider({ children }: { children: ReactNode }) {
   const { profile } = useAuth();
   const [runners, setRunners] = useState<Record<string, RunnerState>>({});
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Sessions que l'utilisateur vient d'arrêter explicitement côté client.
   // Le polling (toutes les 4s) peut chevaucher une requête réseau lancée
   // juste avant l'arrêt et renvoyer un état encore "actif" légèrement
@@ -82,12 +82,10 @@ export function TradingProvider({ children }: { children: ReactNode }) {
       return;
     }
     refreshRunners();
-    pollRef.current = setInterval(refreshRunners, 4000);
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = null;
-    };
   }, [profile?.id]);
+
+  // Rafraîchissement toutes les 30 s, seulement si l'onglet est visible.
+  useVisiblePolling(refreshRunners, 30000, [profile?.id], !!profile);
 
   const startManualSession = async () => {
     if (!profile) return null;

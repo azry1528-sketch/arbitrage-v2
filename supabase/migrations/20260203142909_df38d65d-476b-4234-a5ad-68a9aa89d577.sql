@@ -12,7 +12,7 @@ CREATE TABLE public.profiles (
     email TEXT,
     phone TEXT,
     avatar_url TEXT,
-    referral_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(6), 'hex'),
+    referral_code TEXT UNIQUE DEFAULT encode(extensions.gen_random_bytes(6), 'hex'),
     referred_by UUID REFERENCES public.profiles(id),
     balance DECIMAL(20, 8) DEFAULT 0,
     total_earnings DECIMAL(20, 8) DEFAULT 0,

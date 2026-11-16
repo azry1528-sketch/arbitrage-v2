@@ -19,10 +19,10 @@ ALTER TABLE public.profiles
 -- Referral codes must start with "ARBITRAGE-"
 -- =====================================================================
 ALTER TABLE public.profiles
-  ALTER COLUMN referral_code SET DEFAULT ('ARBITRAGE-' || upper(encode(gen_random_bytes(4), 'hex')));
+  ALTER COLUMN referral_code SET DEFAULT ('ARBITRAGE-' || upper(encode(extensions.gen_random_bytes(4), 'hex')));
 
 UPDATE public.profiles
-SET referral_code = 'ARBITRAGE-' || upper(encode(gen_random_bytes(4), 'hex'))
+SET referral_code = 'ARBITRAGE-' || upper(encode(extensions.gen_random_bytes(4), 'hex'))
 WHERE referral_code IS NULL OR referral_code NOT ILIKE 'arbitrage%';
 
 -- =====================================================================

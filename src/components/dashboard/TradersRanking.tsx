@@ -1,3 +1,4 @@
+import { PopupShell } from '@/components/ui/popup';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -153,8 +154,8 @@ function generateFakeTraders(count: number, existingIds: Set<string>): RankedTra
 
 function TraderModal({ trader, onClose }: { trader: RankedTrader; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="glass-card p-5 max-w-sm w-full animate-in fade-in zoom-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <PopupShell onClose={onClose} className="max-w-sm">
+      <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-foreground">Profil trader</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -204,7 +205,7 @@ function TraderModal({ trader, onClose }: { trader: RankedTrader; onClose: () =>
           </div>
         </div>
       </div>
-    </div>
+    </PopupShell>
   );
 }
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Megaphone } from 'lucide-react';
+import { PopupButton } from '@/components/ui/popup';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { CovsBanner } from '@/components/brand/CovsToken';
@@ -47,21 +46,19 @@ export function AnnouncementsDialog({ open, onClose }: { open: boolean; onClose:
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Megaphone className="w-4 h-4 text-primary" /> Dernières annonces
-          </DialogTitle>
+          <DialogTitle>Dernières annonces</DialogTitle>
         </DialogHeader>
-        <div className="space-y-1.5 max-h-[50vh] overflow-y-auto">
+        <div className="space-y-2 max-h-[50vh] overflow-y-auto">
           <CovsBanner to={COVS_INFO_URL} cta="En savoir plus" compact className="!rounded-lg !px-3 !py-3" />
           {items.map((a) => (
-            <div key={a.id} className="p-2.5 rounded-lg bg-primary/5 border border-primary/20">
-              <div className="font-semibold text-xs">{a.title}</div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{a.message}</p>
+            <div key={a.id} className="p-3 rounded-xl bg-secondary/50">
+              <div className="font-semibold text-sm">{a.title}</div>
+              <p className="text-[13px] text-muted-foreground mt-0.5">{a.message}</p>
               <div className="text-[10px] text-muted-foreground mt-1">{new Date(a.created_at).toLocaleDateString('fr-FR')}</div>
             </div>
           ))}
         </div>
-        <label className="flex items-center gap-2 text-[11px] text-muted-foreground cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
           <input
             type="checkbox"
             className="rounded border-border"
@@ -70,7 +67,7 @@ export function AnnouncementsDialog({ open, onClose }: { open: boolean; onClose:
           />
           Ne plus afficher cette popup à la connexion
         </label>
-        <Button className="btn-gold w-full h-9 text-sm" onClick={handleClose}>Compris</Button>
+        <PopupButton onClick={handleClose}>Compris</PopupButton>
       </DialogContent>
     </Dialog>
   );

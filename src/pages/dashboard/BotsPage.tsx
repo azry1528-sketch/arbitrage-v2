@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useVisiblePolling } from '@/hooks/useVisiblePolling';
 import { useTrading } from '@/contexts/TradingContext';
 import { BotWizardDialog, BotWizardPayload } from '@/components/dashboard/BotWizardDialog';
 import { BotEditDialog, BotEditPayload } from '@/components/dashboard/BotEditDialog';
@@ -83,7 +82,10 @@ export default function BotsPage() {
 
   // Rafraîchit les stats de session en continu (le moteur serveur génère
   // des trades même si le bot a été mis en pause côté client entre-temps).
-  useVisiblePolling(() => fetchSessionStats(bots), 30000, [bots]);
+  useEffect(() => {
+    const t = setInterval(() => fetchSessionStats(bots), 4000);
+    return () => clearInterval(t);
+  }, [bots]);
 
   const createBot = async (payload: BotWizardPayload) => {
     if (!profile) return;
@@ -296,7 +298,7 @@ export default function BotsPage() {
       <Dialog open={deploying} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()} hideClose>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Bot className="w-5 h-5 text-primary" /> Déploiement du bot</DialogTitle>
+            <DialogTitle>Déploiement du bot</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             {DEPLOY_STEPS.map((s) => (

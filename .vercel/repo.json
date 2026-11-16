@@ -1,0 +1,11 @@
+{
+  "remoteName": "origin",
+  "projects": [
+    {
+      "id": "prj_nqa70zbwVgRew1B5SDT1AF5tvjtj",
+      "name": "arbitrage-v2",
+      "directory": ".",
+      "orgId": "team_xrRYMc0eSBsRh9Iid2TnoV8n"
+    }
+  ]
+}

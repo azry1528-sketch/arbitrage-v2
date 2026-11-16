@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { PopupButton } from '@/components/ui/popup';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight, Bot as BotIcon, CheckCircle2 } from 'lucide-react';
 import { BOT_STRATEGIES, defaultConfigFor, getStrategy } from '@/lib/botStrategies';
@@ -93,9 +93,7 @@ export function BotWizardDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BotIcon className="w-5 h-5 text-primary" /> Créer un nouveau bot
-          </DialogTitle>
+          <DialogTitle>Créer un nouveau bot</DialogTitle>
         </DialogHeader>
 
         {/* Fil d'étapes */}
@@ -213,13 +211,13 @@ export function BotWizardDialog({
 
         <div className="flex gap-2 pt-2">
           {step > 1 && (
-            <Button variant="outline" onClick={() => setStep((s) => s - 1)}>
-              <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
-            </Button>
+            <PopupButton variant="secondary" className="w-auto px-5" onClick={() => setStep((s) => s - 1)}>
+              <ChevronLeft className="w-4 h-4" /> Précédent
+            </PopupButton>
           )}
-          <Button className="btn-gold flex-1" onClick={goNext}>
-            {isLast ? 'Créer le bot' : 'Suivant'} {!isLast && <ChevronRight className="w-4 h-4 ml-1" />}
-          </Button>
+          <PopupButton className="flex-1" onClick={goNext}>
+            {isLast ? 'Créer le bot' : 'Suivant'} {!isLast && <ChevronRight className="w-4 h-4" />}
+          </PopupButton>
         </div>
       </DialogContent>
     </Dialog>

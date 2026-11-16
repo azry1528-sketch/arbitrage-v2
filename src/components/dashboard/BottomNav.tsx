@@ -1,28 +1,42 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Layers, Zap, Users, Wallet } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Zap, Users, Wallet, Home, LineChart, Compass } from 'lucide-react';
 
-const items = [
+const exchangeItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Accueil', end: true },
-  { to: '/dashboard/strategy', icon: Layers, label: 'Stratégies' },
+  { to: '/dashboard/strategy', icon: LineChart, label: 'Marchés' },
   { to: '/dashboard/trade', icon: Zap, label: 'Trade' },
   { to: '/dashboard/network', icon: Users, label: 'Réseau' },
   { to: '/dashboard/portfolio', icon: Wallet, label: 'Actifs' },
 ];
 
-// Barre de navigation basse mobile — reprend exactement la disposition de
-// l'app de référence (5 icônes fines, actif en jaune, inactif en gris).
+// Mode Portefeuille : Accueil / Marchés / Trader / Découvrir / Actifs
+const walletItems = [
+  { to: '/dashboard/portefeuille', icon: Home, label: 'Accueil', end: true },
+  { to: '/dashboard/portefeuille/marches', icon: LineChart, label: 'Marchés' },
+  { to: '/dashboard/portefeuille/trader', icon: Zap, label: 'Trader' },
+  { to: '/dashboard/portefeuille/decouvrir', icon: Compass, label: 'Découvrir' },
+  { to: '/dashboard/portefeuille/actifs', icon: Wallet, label: 'Actifs' },
+];
+
+// Barre de navigation basse mobile — 5 icônes fines, actif en jaune, inactif en gris.
 export function BottomNav() {
+  const { pathname } = useLocation();
+  const walletMode = pathname.startsWith('/dashboard/portefeuille');
+  const items = walletMode ? walletItems : exchangeItems;
+
+  const isActive = (_to: string, routerActive: boolean) => routerActive;
+
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 border-t border-border">
       <div className="flex items-stretch justify-between px-2">
         {items.map((item) => (
           <NavLink
-            key={item.to}
+            key={item.label}
             to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
+            end={(item as any).end}
+            className={({ isActive: ra }) =>
               `flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors duration-200 ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
+                isActive(item.to, ra) ? 'text-primary' : 'text-muted-foreground'
               }`
             }
           >

@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Input } from '@/components/ui/input';
+import { PopupShell } from '@/components/ui/popup';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Period = '1h' | '24h' | '7d';
@@ -332,12 +333,8 @@ function TokenDetail({ token, onClose, isFav, onToggleFav }: { token: CryptoPric
   }, [token.id, range]);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
-      onClick={onClose}>
-      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="glass-card w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <PopupShell onClose={onClose} className="max-w-2xl">
         <button className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" onClick={onClose}><X className="w-5 h-5" /></button>
 
         <div className="flex items-center gap-3 mb-4">
@@ -413,7 +410,7 @@ function TokenDetail({ token, onClose, isFav, onToggleFav }: { token: CryptoPric
             </ResponsiveContainer>
           )}
         </div>
-      </motion.div>
+      </PopupShell>
     </motion.div>
   );
 }

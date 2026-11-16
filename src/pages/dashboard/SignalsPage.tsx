@@ -7,6 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeDecimalInput } from '@/lib/utils';
+import { PopupShell } from '@/components/ui/popup';
+import { SignalsWarningSheet } from '@/components/dashboard/SignalsWarningSheet';
 
 const EXCHANGES = ['Binance', 'Coinbase', 'Kraken', 'KuCoin', 'Bybit', 'OKX', 'Bitfinex', 'Huobi'];
 const FEE_RATE = 0.002; // 0.2% total
@@ -64,6 +66,7 @@ export default function SignalsPage() {
 
   return (
     <div className="space-y-6">
+      <SignalsWarningSheet />
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2"><Signal className="w-6 h-6 text-primary" /> Signaux d'arbitrage</h2>
         <p className="text-sm text-muted-foreground">Cliquez sur un signal pour voir le détail et exécuter</p>
@@ -154,12 +157,8 @@ function SignalDetail({ signal, onClose }: { signal: SignalItem; onClose: () => 
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
-      onClick={onClose}>
-      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="glass-card w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <PopupShell onClose={onClose}>
         <button className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" onClick={onClose}><X className="w-5 h-5" /></button>
 
         <div className="flex items-center gap-3 mb-4">
@@ -242,7 +241,7 @@ function SignalDetail({ signal, onClose }: { signal: SignalItem; onClose: () => 
             <Button className="btn-gold" onClick={onClose}>Fermer</Button>
           </div>
         )}
-      </motion.div>
+      </PopupShell>
     </motion.div>
   );
 }

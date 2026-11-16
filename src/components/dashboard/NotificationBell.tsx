@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Bell, BellRing, BellOff } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { isPushSupported, pushUnsupportedReason, needsIosInstall, getCurrentSubscription, enablePush, disablePush, syncPush } from '@/lib/push';
+import { syncPush } from '@/lib/push';
 
 interface Notif {
   id: string;
@@ -21,46 +22,12 @@ export function NotificationBell() {
   const { profile } = useAuth();
   const [items, setItems] = useState<Notif[]>([]);
   const [tab, setTab] = useState<'all' | 'unread'>('all');
-  const { toast } = useToast();
-  const [pushOn, setPushOn] = useState(false);
-  const [pushBusy, setPushBusy] = useState(false);
-  const pushSupported = isPushSupported();
-  const iosHint = needsIosInstall();
+  const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
+  // Resynchronise l'abonnement push (le réglage est dans Paramètres)
   useEffect(() => {
-    const reason = pushUnsupportedReason();
-    if (reason) console.warn('[push] indisponible :', reason);
-  }, []);
-
-  // État push au chargement + resynchronisation de l'abonnement en base
-  useEffect(() => {
-    if (!profile?.id || !pushSupported) return;
-    syncPush(profile.id).catch(() => {});
-    getCurrentSubscription().then((sub) => setPushOn(!!sub && Notification.permission === 'granted')).catch(() => {});
-  }, [profile?.id, pushSupported]);
-
-  const togglePush = async () => {
-    if (!profile?.id) return;
-    setPushBusy(true);
-    try {
-      if (pushOn) {
-        await disablePush();
-        setPushOn(false);
-        toast({ title: 'Notifications push désactivées' });
-      } else {
-        const res = await enablePush(profile.id);
-        if (res === 'granted') {
-          setPushOn(true);
-          toast({ title: 'Notifications push activées' });
-        } else {
-          toast({ title: 'Autorisation refusée', description: "Autorise les notifications dans les réglages du navigateur.", variant: 'destructive' });
-        }
-      }
-    } catch (e: any) {
-      toast({ title: 'Erreur', description: e?.message || 'Impossible de modifier les notifications push', variant: 'destructive' });
-    } finally {
-      setPushBusy(false);
-    }
-  };
+    if (profile?.id) syncPush(profile.id).catch(() => {});
+  }, [profile?.id]);
 
   const fetch = async () => {
     if (!profile?.id) return;
@@ -92,39 +59,23 @@ export function NotificationBell() {
     fetch();
   };
 
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5" />
-          {unread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
-              {unread}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+  const trigger = (
+    <Button variant="ghost" size="icon" className="relative" onClick={isMobile ? () => setOpen(true) : undefined}>
+      <Bell className="w-5 h-5" />
+      {unread > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
+          {unread}
+        </span>
+      )}
+    </Button>
+  );
+
+  const panel = (
+    <div>
         <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="font-semibold">Notifications</div>
           {unread > 0 && <button onClick={markAllRead} className="text-xs text-primary hover:underline">Tout marquer lu</button>}
         </div>
-        {pushSupported ? (
-          <button
-            onClick={togglePush}
-            disabled={pushBusy}
-            className="w-full flex items-center gap-2 px-3 py-2 text-xs border-b border-border text-left hover:bg-muted/50 transition-colors disabled:opacity-60"
-          >
-            {pushOn ? <BellOff className="w-4 h-4 shrink-0 text-muted-foreground" /> : <BellRing className="w-4 h-4 shrink-0 text-primary" />}
-            <span className="flex-1">{pushOn ? 'Notifications push activées — désactiver' : 'Activer les notifications push'}</span>
-          </button>
-        ) : (
-          <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border">
-            {iosHint
-              ? "Sur iPhone, installe d'abord l'app sur l'écran d'accueil pour activer les notifications push."
-              : "Notifications push indisponibles sur ce navigateur."}
-          </div>
-        )}
         <Tabs value={tab} onValueChange={(v) => setTab(v as 'all' | 'unread')}>
           <TabsList className="w-full rounded-none bg-transparent border-b border-border p-0 h-auto">
             <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-2">
@@ -149,7 +100,28 @@ export function NotificationBell() {
             </div>
           ))}
         </div>
-      </PopoverContent>
-    </Popover>
+    </div>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <>
+          {trigger}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent className="p-0 pt-7 sm:max-w-md">
+              <DialogTitle className="sr-only">Notifications</DialogTitle>
+              <DialogDescription className="sr-only">Vos notifications</DialogDescription>
+              {panel}
+            </DialogContent>
+          </Dialog>
+        </>
+      ) : (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="end">{panel}</PopoverContent>
+        </Popover>
+      )}
+    </>
   );
 }

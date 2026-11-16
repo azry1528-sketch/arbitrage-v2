@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { PopupButton } from '@/components/ui/popup';
 import { Wallet, Bot, Zap, ArrowUpCircle, ChevronRight, ChevronLeft, Rocket } from 'lucide-react';
 
 const STEPS = [
@@ -42,12 +42,13 @@ export function TutorialDialog({ open, onClose }: { open: boolean; onClose: () =
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Icon className="w-5 h-5 text-primary" /> {current.title}
-          </DialogTitle>
+        <DialogHeader className="items-center sm:items-start">
+          <div className="w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center mb-1">
+            <Icon className="w-7 h-7 text-primary" strokeWidth={1.8} />
+          </div>
+          <DialogTitle>{current.title}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground leading-relaxed">{current.text}</p>
+        <p className="text-[15px] text-foreground/80 leading-relaxed">{current.text}</p>
         <div className="flex items-center justify-center gap-1.5 py-2">
           {STEPS.map((_, i) => (
             <span key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-6 bg-primary' : 'w-1.5 bg-border'}`} />
@@ -55,13 +56,13 @@ export function TutorialDialog({ open, onClose }: { open: boolean; onClose: () =
         </div>
         <div className="flex gap-2">
           {step > 0 && (
-            <Button variant="outline" onClick={() => setStep((s) => s - 1)}>
-              <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
-            </Button>
+            <PopupButton variant="secondary" className="w-auto px-5" onClick={() => setStep((s) => s - 1)}>
+              <ChevronLeft className="w-4 h-4" /> Précédent
+            </PopupButton>
           )}
-          <Button className="btn-gold flex-1" onClick={() => (isLast ? handleClose() : setStep((s) => s + 1))}>
-            {isLast ? "C'est parti !" : 'Suivant'} {!isLast && <ChevronRight className="w-4 h-4 ml-1" />}
-          </Button>
+          <PopupButton className="flex-1" onClick={() => (isLast ? handleClose() : setStep((s) => s + 1))}>
+            {isLast ? "C'est parti !" : 'Suivant'} {!isLast && <ChevronRight className="w-4 h-4" />}
+          </PopupButton>
         </div>
       </DialogContent>
     </Dialog>

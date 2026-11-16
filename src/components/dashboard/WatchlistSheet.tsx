@@ -9,11 +9,11 @@ export function WatchlistSheet({ open, onOpenChange }: { open: boolean; onOpenCh
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-sm">
+      <SheetContent side="sheet">
         <SheetHeader>
           <SheetTitle>Watchlist</SheetTitle>
         </SheetHeader>
-        <div className="mt-4 space-y-1 overflow-y-auto max-h-[calc(100vh-6rem)]">
+        <div className="mt-4 space-y-1 overflow-y-auto max-h-[70vh] sm:max-h-[calc(100vh-6rem)]">
           {prices.map((c) => (
             <div key={c.id} className="flex items-center gap-3 py-2.5 px-1 border-b border-border/50">
               {c.image && <img src={c.image} alt={c.symbol} className="w-8 h-8 rounded-full" />}

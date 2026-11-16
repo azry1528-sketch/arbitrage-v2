@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { PopupButton } from '@/components/ui/popup';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings, Loader2 } from 'lucide-react';
 import { BOT_STRATEGIES, defaultConfigFor, getStrategy } from '@/lib/botStrategies';
@@ -78,9 +78,7 @@ export function BotEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-primary" /> Paramètres de {bot.name}
-          </DialogTitle>
+          <DialogTitle>Paramètres de {bot.name}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -150,9 +148,9 @@ export function BotEditDialog({
             {amountError && <p className="text-[11px] text-destructive mt-1">{amountError}</p>}
           </div>
 
-          <Button className="btn-gold w-full" onClick={handleSave} disabled={saving}>
-            {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enregistrement...</> : 'Enregistrer les paramètres'}
-          </Button>
+          <PopupButton onClick={handleSave} disabled={saving}>
+            {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</> : 'Enregistrer les paramètres'}
+          </PopupButton>
         </div>
       </DialogContent>
     </Dialog>

@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PushSettingsRow } from './PushSettingsRow';
 
 // Reprend l'offcanvas "Appearance" du template Forexo : réglages de compte
 // et généraux sous forme d'interrupteurs. Le mode sombre/clair est ici
@@ -16,7 +17,7 @@ export function AppearanceSheet({ open, onOpenChange }: { open: boolean; onOpenC
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-sm">
+      <SheetContent side="sheet">
         <SheetHeader>
           <SheetTitle>Apparence</SheetTitle>
         </SheetHeader>
@@ -61,6 +62,7 @@ export function AppearanceSheet({ open, onOpenChange }: { open: boolean; onOpenC
             <Label htmlFor="show-online">Visible comme en ligne</Label>
             <Switch id="show-online" checked={showOnline} onCheckedChange={setShowOnline} />
           </div>
+          <PushSettingsRow />
           <div className="flex items-center justify-between py-2">
             <Label htmlFor="notif-popup">Notifications popup</Label>
             <Switch id="notif-popup" checked={notifPopup} onCheckedChange={setNotifPopup} />

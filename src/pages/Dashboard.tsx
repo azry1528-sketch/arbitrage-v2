@@ -18,7 +18,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useCryptoPrices } from '@/hooks/useCryptoPrices';
-import { useVisiblePolling } from '@/hooks/useVisiblePolling';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeDecimalInput } from '@/lib/utils';
 import { validateWalletAddress, getWalletAddressError } from '@/lib/walletValidation';
@@ -35,6 +34,9 @@ import { ActiveBotsWidget } from '@/components/dashboard/ActiveBotsWidget';
 import { RecentTransactionsFeed } from '@/components/dashboard/RecentTransactionsFeed';
 import { PlatformSpread } from '@/components/dashboard/PlatformSpread';
 import { BottomNav } from '@/components/dashboard/BottomNav';
+import { SearchAutocomplete } from '@/components/dashboard/SearchAutocomplete';
+import { ModeSwitch } from '@/components/dashboard/ModeSwitch';
+import { ModeSplash } from '@/components/dashboard/ModeSplash';
 import { TradingViewChart } from '@/components/dashboard/TradingViewChart';
 import { OrderForm } from '@/components/dashboard/OrderForm';
 import { TradingPanel } from '@/components/dashboard/TradingPanel';
@@ -53,6 +55,11 @@ import SignalsPage from './dashboard/SignalsPage';
 import BotsPage from './dashboard/BotsPage';
 import BotDetailPage from './dashboard/BotDetailPage';
 import AnnouncementsPage from './dashboard/AnnouncementsPage';
+import WalletHomePage from './dashboard/WalletHomePage';
+import WalletMarketsPage from './dashboard/WalletMarketsPage';
+import WalletTradePage from './dashboard/WalletTradePage';
+import WalletDiscoverPage from './dashboard/WalletDiscoverPage';
+import WalletAssetsPage from './dashboard/WalletAssetsPage';
 import { KYCVerification } from '@/components/dashboard/KYCVerification';
 
 // ================= Overview (Home) =================
@@ -96,9 +103,11 @@ function DashboardOverview() {
     setTodayGain(tradesGain + investmentGain);
   };
 
-  useEffect(() => { loadTodayGain(); }, [profile?.id]);
-  // Rafraîchissement toutes les 60 s, seulement si l'onglet est visible.
-  useVisiblePolling(loadTodayGain, 60000, [profile?.id]);
+  useEffect(() => {
+    loadTodayGain();
+    const timer = setInterval(loadTodayGain, 8000);
+    return () => clearInterval(timer);
+  }, [profile?.id]);
 
   const balance = Number(profile?.balance || 0);
   const todayPct = balance > 0 ? ((todayGain / balance) * 100).toFixed(2) : '0.00';
@@ -109,7 +118,7 @@ function DashboardOverview() {
     { icon: Users, label: 'Parrainage', to: '/dashboard/network' },
     { icon: Wallet, label: 'Actifs', to: '/dashboard/portfolio' },
     { icon: Zap, label: 'Trade', to: '/dashboard/trade' },
-    { icon: Layers, label: 'Stratégies', to: '/dashboard/strategy' },
+    { icon: LineChart, label: 'Marchés', to: '/dashboard/strategy' },
     { icon: Bot, label: 'Bots', to: '/dashboard/trade?tab=automatique' },
     { icon: MessageCircle, label: 'Support', to: '/dashboard/support' },
   ];
@@ -1068,13 +1077,6 @@ export default function Dashboard() {
   const [showInstallApp, setShowInstallApp] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
-  const [headerSearch, setHeaderSearch] = useState('');
-
-  const submitHeaderSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = headerSearch.trim();
-    navigate(q ? `/dashboard/strategy?tab=marches&q=${encodeURIComponent(q)}` : '/dashboard/strategy?tab=marches');
-  };
 
   // Popup du tutoriel à l'inscription, popup des annonces à la connexion, puis
   // popup d'installation de l'application (une fois les deux précédentes
@@ -1118,7 +1120,7 @@ export default function Dashboard() {
       items: [
         { path: '/dashboard', icon: LayoutDashboard, label: t('home') },
         { path: '/dashboard/trade', icon: Zap, label: t('trader') },
-        { path: '/dashboard/strategy', icon: Layers, label: t('strategies'), isNew: true },
+        { path: '/dashboard/strategy', icon: LineChart, label: t('markets'), isNew: true },
       ],
     },
     {
@@ -1216,16 +1218,9 @@ export default function Dashboard() {
             <Logo size={28} className="lg:hidden" />
 
             {/* Barre de recherche — visible en ligne sur desktop uniquement */}
-            <form onSubmit={submitHeaderSearch} className="hidden lg:flex items-center relative flex-1 max-w-sm">
-              <Search className="w-4 h-4 absolute left-3 text-muted-foreground pointer-events-none" strokeWidth={2} />
-              <input
-                type="search"
-                value={headerSearch}
-                onChange={(e) => setHeaderSearch(e.target.value)}
-                placeholder="Rechercher des cryptos, produits..."
-                className="w-full pl-9 pr-3 py-2 rounded-md bg-secondary border border-transparent text-sm placeholder:text-muted-foreground input-premium"
-              />
-            </form>
+            <SearchAutocomplete className="hidden lg:block flex-1 max-w-sm" inputClassName="py-2" />
+
+            <ModeSwitch className="hidden sm:inline-flex mx-auto lg:mx-0" />
 
             <div className="flex items-center gap-1 ml-auto">
               <button className="p-2 rounded-full hover:bg-secondary/60 transition-colors duration-200 w-9 h-9 flex items-center justify-center text-muted-foreground">
@@ -1267,20 +1262,13 @@ export default function Dashboard() {
           </div>
 
           {/* Ligne 2 : barre de recherche pleine largeur — mobile uniquement */}
-          <form onSubmit={submitHeaderSearch} className="lg:hidden px-4 pb-3">
-            <div className="flex items-center relative">
-              <Search className="w-4 h-4 absolute left-3 text-muted-foreground pointer-events-none" strokeWidth={2} />
-              <input
-                type="search"
-                value={headerSearch}
-                onChange={(e) => setHeaderSearch(e.target.value)}
-                placeholder="Rechercher des cryptos, produits..."
-                className="w-full pl-9 pr-3 py-2.5 rounded-md bg-secondary border border-transparent text-sm placeholder:text-muted-foreground input-premium"
-              />
-            </div>
-          </form>
+          <div className="lg:hidden px-4 pb-3 space-y-3">
+            <ModeSwitch className="sm:hidden flex w-full [&>a]:flex-1 [&>a]:text-center" />
+            <SearchAutocomplete inputClassName="py-2.5" />
+          </div>
         </header>
 
+        <ModeSplash />
         <WatchlistSheet open={watchlistOpen} onOpenChange={setWatchlistOpen} />
         <AppearanceSheet open={appearanceOpen} onOpenChange={setAppearanceOpen} />
 
@@ -1291,6 +1279,11 @@ export default function Dashboard() {
             <Route path="/trade" element={<TradePage />} />
             <Route path="/trader" element={<RedirectTo to="/dashboard/trade" />} />
             <Route path="/bots/:id" element={<BotDetailPage />} />
+            <Route path="/portefeuille" element={<WalletHomePage />} />
+            <Route path="/portefeuille/marches" element={<WalletMarketsPage />} />
+            <Route path="/portefeuille/trader" element={<WalletTradePage />} />
+            <Route path="/portefeuille/decouvrir" element={<WalletDiscoverPage />} />
+            <Route path="/portefeuille/actifs" element={<WalletAssetsPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
             <Route path="/network" element={<NetworkPage />} />
             <Route path="/strategy" element={<StrategyHubPage />} />

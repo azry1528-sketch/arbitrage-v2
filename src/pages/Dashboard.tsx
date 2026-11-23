@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -45,6 +45,9 @@ import { Announcements } from '@/components/dashboard/Announcements';
 import { TutorialDialog } from '@/components/dashboard/TutorialDialog';
 import { AnnouncementsDialog } from '@/components/dashboard/AnnouncementsDialog';
 import { InstallAppPopup } from '@/components/InstallAppPopup';
+import { PushPromptPopup } from '@/components/PushPromptPopup';
+import { SupportChat } from '@/components/dashboard/SupportChat';
+import { isAppInstalled } from '@/lib/pwaInstall';
 import { Logo } from '@/components/brand/Logo';
 import { CovsCoin } from '@/components/brand/CovsToken';
 import { TOKEN_SYMBOL } from '@/lib/brand';
@@ -78,39 +81,50 @@ function DashboardOverview() {
   const { prices } = useCryptoPrices();
   const { t } = useLanguage();
   const [todayGain, setTodayGain] = useState(0);
+  const [botsCapital, setBotsCapital] = useState(0);
+  const creditedGainRef = useRef(0);
   const [displayCurrency, setDisplayCurrency] = useState<'USDT' | 'BTC'>('USDT');
   const [hideBalance, setHideBalance] = useState(false);
 
-  const loadTodayGain = async () => {
+  const loadTodayGain = async (creditReturns = false) => {
     if (!profile) return;
-    const { data: creditedInvestments } = await supabase.rpc('calculate_daily_returns' as any, { _user_id: profile.id });
-    if (creditedInvestments && (creditedInvestments as any[]).length > 0) await refreshProfile();
+
+    // Crédit des rendements des anciens investissements : une seule fois au chargement
+    // (la fonction ne renvoie que les lignes nouvellement créditées, on les cumule).
+    if (creditReturns) {
+      const { data: credited } = await supabase.rpc('calculate_daily_returns' as any, { _user_id: profile.id });
+      if (credited && (credited as any[]).length > 0) {
+        creditedGainRef.current += (credited as any[]).reduce((sum: number, i: any) => sum + Number(i.amount_credited || 0), 0);
+        await refreshProfile();
+      }
+    }
 
     const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
 
-    // G&P calculé directement à partir des trades du jour (source de vérité en
-    // temps réel), plutôt que de dépendre uniquement du cache daily_snapshots
-    // qui peut être en retard si le trigger de crédit n'a pas encore tourné.
+    // G&P du jour calculé directement à partir des trades du jour (source de vérité).
     const { data: trades } = await supabase
       .from('arbitrage_trades')
       .select('profit, arbitrage_sessions!inner(user_id)')
       .eq('arbitrage_sessions.user_id', profile.id)
       .gte('executed_at', startOfDay.toISOString());
-
     const tradesGain = (trades || []).reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0);
-    const investmentGain = ((creditedInvestments as any[]) || []).reduce((sum: number, i: any) => sum + Number(i.amount_credited || 0), 0);
+    setTodayGain(tradesGain + creditedGainRef.current);
 
-    setTodayGain(tradesGain + investmentGain);
+    // Capital actuellement engagé dans les bots actifs (retiré du solde liquide à l'allocation)
+    const { data: bots } = await supabase.from('bots' as any).select('allocated_amount, status').eq('user_id', profile.id);
+    setBotsCapital(((bots as any[]) || []).filter((b) => b.status === 'active').reduce((sum, b) => sum + Number(b.allocated_amount || 0), 0));
   };
 
   useEffect(() => {
-    loadTodayGain();
-    const timer = setInterval(loadTodayGain, 8000);
+    loadTodayGain(true);
+    const timer = setInterval(() => loadTodayGain(false), 8000);
     return () => clearInterval(timer);
   }, [profile?.id]);
 
-  const balance = Number(profile?.balance || 0);
-  const todayPct = balance > 0 ? ((todayGain / balance) * 100).toFixed(2) : '0.00';
+  const liquidBalance = Number(profile?.balance || 0);
+  const balance = liquidBalance + botsCapital; // solde total = liquide + capital engagé dans les bots
+  const startEquity = balance - todayGain;
+  const todayPct = startEquity > 0 ? ((todayGain / startEquity) * 100).toFixed(2) : '0.00';
   const positive = todayGain >= 0;
   const btcPrice = prices.find((p) => p.id === 'bitcoin')?.current_price;
 
@@ -158,12 +172,12 @@ function DashboardOverview() {
             <div className="text-sm mt-1.5 text-muted-foreground tabular-nums font-mono">
               {hideBalance ? '••••' : `≈ ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`}
             </div>
-            <div className="flex items-center gap-2 text-sm mt-2">
+            <Link to="/dashboard/trade?tab=automatique" className="flex items-center gap-2 text-sm mt-2 hover:opacity-80 transition-opacity" title="Voir mes bots et leurs trades">
               <span className="text-muted-foreground">{t('todayGain')}</span>
               <span className={`font-medium tabular-nums font-mono ${positive ? 'text-success' : 'text-destructive'}`}>
                 {hideBalance ? '••••' : `${positive ? '+' : '-'}${Math.abs(todayGain).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $ (${positive ? '+' : ''}${todayPct} %)`}
               </span>
-            </div>
+            </Link>
           </div>
 
           {/* Actions — petits boutons plats en haut à droite, comme sur Binance */}
@@ -627,21 +641,41 @@ function DepositsPage() {
               <SelectItem value="sol">Solana (SOL)</SelectItem>
             </SelectContent>
           </Select>
-          <input type="text" inputMode="decimal" autoComplete="off" placeholder="Montant en USD (min 50)" value={amount}
+          <input type="text" inputMode="decimal" autoComplete="off" placeholder="Montant en USD (min 60)" value={amount}
             onChange={(e) => setAmount(sanitizeDecimalInput(e.target.value))}
             className="w-full px-4 py-3 rounded-lg bg-input border border-border input-premium" />
-          <Button className="w-full btn-gold" onClick={create} disabled={loading || !amount || parseFloat(amount) < 50}>
+          <Button className="w-full btn-gold" onClick={create} disabled={loading || !amount || parseFloat(amount) < 60}>
             <ArrowDownCircle className="w-4 h-4 mr-2" />{loading ? 'Génération...' : 'Générer adresse'}
           </Button>
           {payInfo && (
-            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 space-y-2 text-sm">
-              <div className="font-mono font-bold">{payInfo.pay_amount} {payInfo.pay_currency?.toUpperCase()}</div>
-              <div className="flex items-center gap-2">
-                <div className="font-mono text-xs break-all bg-background/50 p-2 rounded flex-1">{payInfo.pay_address}</div>
-                <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(payInfo.pay_address); toast({ title: 'Copié' }); }}>
-                  <Copy className="w-4 h-4" />
-                </Button>
+            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 space-y-3 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Envoyez exactement</div>
+                <div className="flex items-center gap-2">
+                  <div className="font-mono font-bold text-lg flex-1">{payInfo.pay_amount} {payInfo.pay_currency?.toUpperCase()}</div>
+                  <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(String(payInfo.pay_amount)); toast({ title: 'Montant copié' }); }}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">à cette adresse</div>
+                <div className="flex items-center gap-2">
+                  <div className="font-mono text-xs break-all bg-background/50 p-2 rounded flex-1">{payInfo.pay_address}</div>
+                  <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(payInfo.pay_address); toast({ title: 'Adresse copiée' }); }}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                {payInfo.fee_included !== false ? (
+                  <li>Les frais de réseau sont inclus dans ce montant : envoyez-le tel quel.</li>
+                ) : (
+                  <li className="text-warning">Les frais de réseau ne sont pas inclus : un paiement inférieur au montant sera considéré comme partiel et ne sera pas crédité.</li>
+                )}
+                <li>Depuis un exchange, ajoutez ses frais de retrait : l'adresse doit recevoir <strong>exactement</strong> ce montant, sinon le paiement sera partiel.</li>
+                <li>Utilisez uniquement le réseau {payInfo.pay_currency?.toUpperCase()}. Un autre réseau fait perdre les fonds.</li>
+              </ul>
             </div>
           )}
         </div>
@@ -697,7 +731,7 @@ function WithdrawalsPage() {
   const requiresPwd = !!(profile as any)?.withdrawal_password;
   const walletError = getWalletAddressError(ct, wallet);
   const isWalletValid = validateWalletAddress(ct, wallet);
-  const MIN_WITHDRAWAL = 50;
+  const MIN_WITHDRAWAL = 60;
   const kycApproved = (profile as any)?.kyc_status === 'approved';
   const submit = async () => {
     if (!amount || !wallet || !profile) return;
@@ -820,6 +854,7 @@ function NetworkPage() {
   const { toast } = useToast();
   const [refs, setRefs] = useState<any[]>([]);
   const [totalBonus, setTotalBonus] = useState(0);
+  const [pendingBonus, setPendingBonus] = useState(0);
   useEffect(() => {
     if (profile) supabase.rpc('get_my_referrals').then(({ data }) => setRefs(data || []));
   }, [profile]);
@@ -827,9 +862,14 @@ function NetworkPage() {
     if (!profile?.id) return;
     supabase
       .from('referral_earnings' as any)
-      .select('bonus_amount')
+      .select('bonus_amount, status')
       .eq('referrer_id', profile.id)
-      .then(({ data }) => setTotalBonus(((data as any) || []).reduce((sum: number, r: any) => sum + Number(r.bonus_amount), 0)));
+      .then(({ data }) => {
+        const rows = ((data as any) || []) as any[];
+        const sum = (st: string) => rows.filter((r) => r.status === st).reduce((a, r) => a + Number(r.bonus_amount), 0);
+        setTotalBonus(sum('released'));
+        setPendingBonus(sum('pending'));
+      });
   }, [profile?.id]);
   const link = `${window.location.origin}/register?ref=${profile?.referral_code}`;
   return (
@@ -848,6 +888,12 @@ function NetworkPage() {
           <span className="text-sm text-muted-foreground">Total gagné en bonus de parrainage</span>
           <span className="text-sm font-semibold text-success">+${totalBonus.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
+        {pendingBonus > 0 && (
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Bonus en attente (30 jours)</span>
+            <span className="text-xs text-muted-foreground">${pendingBonus.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </div>
+        )}
       </div>
       <div className="glass-card p-5">
         <h3 className="font-bold mb-3">Mes filleuls ({refs.length})</h3>
@@ -1023,46 +1069,28 @@ function ProfilePage() {
 // ================= Support =================
 function SupportPage() {
   const { profile } = useAuth();
-  const { toast } = useToast();
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  useEffect(() => { if (profile) supabase.from('support_tickets').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }).then(({ data }) => setTickets(data || [])); }, [profile]);
-  const submit = async () => {
-    if (!subject || !message || !profile) return;
-    setLoading(true);
-    await supabase.from('support_tickets').insert({ user_id: profile.id, subject, message });
-    const { data } = await supabase.from('support_tickets').select('*').eq('user_id', profile.id).order('created_at', { ascending: false });
-    setTickets(data || []); setSubject(''); setMessage('');
-    toast({ title: 'Ticket envoyé' }); setLoading(false);
-  };
+  const [oldTickets, setOldTickets] = useState<any[]>([]);
+  useEffect(() => {
+    if (profile) supabase.from('support_tickets').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }).then(({ data }) => setOldTickets(data || []));
+  }, [profile]);
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-3xl">
       <h2 className="text-2xl font-bold">Support</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-5 space-y-3">
-          <input placeholder="Sujet" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full px-4 py-3 rounded-lg bg-input border border-border input-premium" />
-          <textarea placeholder="Message" value={message} onChange={(e) => setMessage(e.target.value)} className="w-full px-4 py-3 rounded-lg bg-input border border-border input-premium h-32 resize-none" />
-          <Button className="w-full btn-gold" onClick={submit} disabled={loading || !subject || !message}><MessageCircle className="w-4 h-4 mr-2" />Envoyer</Button>
-        </div>
-        <div className="glass-card p-5">
-          <h3 className="font-bold mb-3">Mes tickets</h3>
-          {tickets.length === 0 ? <p className="text-muted-foreground text-center py-6 text-sm">Aucun ticket</p> : (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {tickets.map(t => (
-                <div key={t.id} className="p-3 rounded bg-secondary/30">
-                  <div className="flex justify-between mb-1"><span className="font-medium text-sm">{t.subject}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] ${t.status === 'closed' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`}>{t.status === 'closed' ? 'Fermé' : 'Ouvert'}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{t.message}</p>
-                  {t.admin_response && <div className="mt-2 p-2 rounded bg-primary/10 border-l-2 border-primary text-xs"><b className="text-primary">Admin :</b> {t.admin_response}</div>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <SupportChat />
+      {oldTickets.length > 0 && (
+        <details className="glass-card p-4">
+          <summary className="cursor-pointer text-sm font-medium">Anciens tickets ({oldTickets.length})</summary>
+          <div className="space-y-2 mt-3 max-h-80 overflow-y-auto">
+            {oldTickets.map((t) => (
+              <div key={t.id} className="p-3 rounded bg-secondary/30">
+                <div className="font-medium text-sm">{t.subject}</div>
+                <p className="text-xs text-muted-foreground">{t.message}</p>
+                {t.admin_response && <div className="mt-2 p-2 rounded bg-primary/10 border-l-2 border-primary text-xs"><b className="text-primary">Admin :</b> {t.admin_response}</div>}
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
@@ -1075,6 +1103,7 @@ export default function Dashboard() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showAnnouncements, setShowAnnouncements] = useState(false);
   const [showInstallApp, setShowInstallApp] = useState(false);
+  const [showPushPrompt, setShowPushPrompt] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
 
@@ -1112,6 +1141,10 @@ export default function Dashboard() {
       setTimeout(() => setShowInstallApp(true), 600);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (showInstallApp && isAppInstalled()) { setShowInstallApp(false); setTimeout(() => setShowPushPrompt(true), 400); }
+  }, [showInstallApp]);
 
   const sideGroups = [
     {
@@ -1152,7 +1185,7 @@ export default function Dashboard() {
       <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="flex flex-col h-full">
           <div className="px-5 py-5 border-b border-sidebar-border">
-            <Logo size={32} />
+            <Logo size={32} to="/dashboard" />
           </div>
           <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
             {sideGroups.map((group, gi) => (
@@ -1215,7 +1248,7 @@ export default function Dashboard() {
         <header className="sticky top-0 z-30 bg-background border-b border-border">
           {/* Ligne 1 : logo (mobile) + icônes — sur desktop, se confond avec la barre de recherche sur une seule ligne */}
           <div className="flex items-center gap-3 px-4 md:px-6 h-14 lg:h-16">
-            <Logo size={28} className="lg:hidden" />
+            <Logo size={28} to="/dashboard" className="lg:hidden" />
 
             {/* Barre de recherche — visible en ligne sur desktop uniquement */}
             <SearchAutocomplete className="hidden lg:block flex-1 max-w-sm" inputClassName="py-2" />
@@ -1226,6 +1259,14 @@ export default function Dashboard() {
               <button className="p-2 rounded-full hover:bg-secondary/60 transition-colors duration-200 w-9 h-9 flex items-center justify-center text-muted-foreground">
                 <ScanLine className="w-[18px] h-[18px]" strokeWidth={2} />
               </button>
+
+              {isAdmin && (
+                <Link to="/admin" title={t('adminSpace')}
+                  className="inline-flex items-center gap-1.5 h-8 px-2.5 mr-1 rounded-md bg-primary/15 text-primary text-xs font-semibold hover:bg-primary/25 transition-colors">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('adminSpace')}</span>
+                </Link>
+              )}
 
               <NotificationBell />
 
@@ -1311,7 +1352,8 @@ export default function Dashboard() {
         open={showAnnouncements}
         onClose={() => { setShowAnnouncements(false); setTimeout(() => setShowInstallApp(true), 400); }}
       />
-      <InstallAppPopup open={showInstallApp} onClose={() => setShowInstallApp(false)} />
+      <InstallAppPopup open={showInstallApp} onClose={() => { setShowInstallApp(false); setTimeout(() => setShowPushPrompt(true), 400); }} />
+      <PushPromptPopup open={showPushPrompt} onClose={() => setShowPushPrompt(false)} />
       <SupportChatWidget />
     </div>
   );

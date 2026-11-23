@@ -48,8 +48,8 @@ const features = [
   },
   {
     icon: Wallet,
-    title: 'Dépôts dès 50$',
-    description: "Commencez petit et grandissez. Aucun montant minimum pour retirer.",
+    title: 'Dépôts dès 60$',
+    description: "Dépôt et retrait à partir de 60$, bot activable dès 120$ de capital.",
   },
 ];
 

@@ -40,8 +40,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { amount, currency = "usdttrc20" } = body;
 
-    if (!amount || amount < 50) {
-      return new Response(JSON.stringify({ error: "Montant invalide (min 50$)" }), {
+    if (!amount || amount < 60) {
+      return new Response(JSON.stringify({ error: "Montant invalide (min 60$)" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -90,21 +90,31 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Call NowPayments API
-    const npResponse = await fetch("https://api.nowpayments.io/v1/payment", {
-      method: "POST",
-      headers: {
-        "x-api-key": nowPaymentsKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        price_amount: amount,
-        price_currency: "usd",
-        pay_currency: currency,
-        order_id: `dep_${profile.id}_${Date.now()}`,
-        order_description: `Dépôt Covesting pour utilisateur ${profile.id}`,
-      }),
-    });
+    // Call NowPayments API.
+    // is_fee_paid_by_user + fixed_rate : le pay_amount renvoyé INCLUT les frais de réseau et
+    // le taux est figé, donc le client envoie un montant exact et ne tombe plus en « partially_paid ».
+    const baseBody = {
+      price_amount: amount,
+      price_currency: "usd",
+      pay_currency: currency,
+      order_id: `dep_${profile.id}_${Date.now()}`,
+      order_description: `Dépôt Covesting pour utilisateur ${profile.id}`,
+    };
+    const callNp = (extra: Record<string, unknown>) =>
+      fetch("https://api.nowpayments.io/v1/payment", {
+        method: "POST",
+        headers: { "x-api-key": nowPaymentsKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ ...baseBody, ...extra }),
+      });
+
+    let feeIncluded = true;
+    let npResponse = await callNp({ is_fee_paid_by_user: true, fixed_rate: true });
+    if (!npResponse.ok) {
+      // Option non activée sur le compte NOWPayments : on retombe sur le mode standard
+      console.warn("is_fee_paid_by_user refusé, nouvel essai sans :", await npResponse.text());
+      feeIncluded = false;
+      npResponse = await callNp({});
+    }
 
     if (!npResponse.ok) {
       const errorText = await npResponse.text();
@@ -117,19 +127,23 @@ Deno.serve(async (req) => {
 
     const npData = await npResponse.json();
 
-    // Create deposit record
-    const { data: deposit } = await adminSupabase
+    // Enregistre le dépôt (avec le montant crypto exact à envoyer ; repli si la colonne n'existe pas encore)
+    const baseRow = {
+      user_id: profile.id,
+      amount: amount,
+      crypto_type: currency.toUpperCase(),
+      wallet_address: npData.pay_address,
+      transaction_hash: npData.payment_id?.toString(),
+      status: "pending",
+    };
+    let { data: deposit, error: depErr } = await adminSupabase
       .from("deposits")
-      .insert({
-        user_id: profile.id,
-        amount: amount,
-        crypto_type: currency.toUpperCase(),
-        wallet_address: npData.pay_address,
-        transaction_hash: npData.payment_id?.toString(),
-        status: "pending",
-      })
+      .insert({ ...baseRow, pay_amount: npData.pay_amount, pay_currency: npData.pay_currency })
       .select()
       .single();
+    if (depErr) {
+      ({ data: deposit } = await adminSupabase.from("deposits").insert(baseRow).select().single());
+    }
 
     return new Response(
       JSON.stringify({
@@ -137,6 +151,7 @@ Deno.serve(async (req) => {
         pay_address: npData.pay_address,
         pay_amount: npData.pay_amount,
         pay_currency: npData.pay_currency,
+        fee_included: feeIncluded,
         deposit_id: deposit?.id,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

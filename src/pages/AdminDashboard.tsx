@@ -575,29 +575,25 @@ function WithdrawalsManagement() {
     setWithdrawals((prev) => prev.map((w) => (w.id === id ? { ...w, wallet_address: wallet } : w)));
   };
 
-  const updateStatus = async (withdrawalId: string, status: 'approved' | 'rejected', userId: string, amount: number) => {
-    const { error } = await supabase
-      .from('withdrawals')
-      .update({ status })
-      .eq('id', withdrawalId);
-
-    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
-
+  const updateStatus = async (withdrawalId: string, status: 'approved' | 'rejected', _userId: string, amount: number) => {
     if (status === 'approved') {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', userId)
-        .single();
-
-      if (profile) {
-        await supabase
-          .from('profiles')
-          .update({ balance: Math.max(0, Number(profile.balance) - amount) })
-          .eq('id', userId);
+      // Envoi réel via NOWPayments : le solde est débité côté serveur, puis la 2FA valide le payout.
+      const code = window.prompt('Code 2FA NOWPayments (6 chiffres) pour envoyer ce retrait :')?.trim();
+      if (!code) return;
+      const { data, error } = await supabase.functions.invoke('nowpayments-payout', {
+        body: { withdrawal_id: withdrawalId, verification_code: code },
+      });
+      let msg: string | undefined = (data as any)?.error;
+      if (error && !msg) {
+        // supabase-js met le détail de la réponse non-2xx dans error.context
+        try { msg = (await (error as any).context.json())?.error; } catch { msg = error.message; }
       }
-      toast({ title: '✅ Retrait validé', description: `$${amount.toLocaleString()} envoyé. L'utilisateur a été notifié.` });
+      if (msg) { toast({ title: 'Envoi impossible', description: msg, variant: 'destructive' }); fetchWithdrawals(); return; }
+      toast({ title: '✅ Envoi lancé', description: `$${amount.toLocaleString()} en cours d'envoi via NOWPayments.` });
     } else {
+      // Un rejet recrédite automatiquement le solde si celui-ci avait été réservé (trigger SQL).
+      const { error } = await supabase.from('withdrawals').update({ status }).eq('id', withdrawalId);
+      if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
       toast({ title: '❌ Retrait rejeté', description: `L'utilisateur a été notifié.` });
     }
 
@@ -739,8 +735,123 @@ function WithdrawalsManagement() {
   );
 }
 
-// Support Tickets Management
+// Support : discussions (réponse via Telegram ou depuis cette page)
 function SupportManagement() {
+  const [convs, setConvs] = useState<any[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [reply, setReply] = useState('');
+
+  const fetchConvs = async () => {
+    const { data } = await supabase
+      .from('support_messages' as any)
+      .select('*, profiles(full_name, email)')
+      .order('created_at', { ascending: false })
+      .limit(500);
+    const seen = new Set<string>();
+    const list: any[] = [];
+    for (const m of ((data as any[]) || [])) {
+      if (seen.has(m.user_id)) continue;
+      seen.add(m.user_id);
+      list.push(m);
+    }
+    setConvs(list);
+  };
+  const fetchMessages = async (userId: string) => {
+    const { data } = await supabase.from('support_messages' as any).select('*').eq('user_id', userId).order('created_at', { ascending: true });
+    setMessages((data as any) || []);
+  };
+
+  useEffect(() => {
+    fetchConvs();
+    const ch = supabase.channel('admin-support')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, () => {
+        fetchConvs();
+        setSelected((cur) => { if (cur) fetchMessages(cur); return cur; });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
+  useEffect(() => { if (selected) fetchMessages(selected); }, [selected]);
+
+  const send = async () => {
+    const body = reply.trim();
+    if (!selected || !body) return;
+    const { error } = await supabase.from('support_messages' as any).insert({ user_id: selected, sender: 'admin', body });
+    if (error) return;
+    await supabase.from('notifications').insert({ user_id: selected, type: 'support_reply', title: '💬 Réponse du support', message: body.slice(0, 140) } as any);
+    setReply('');
+    fetchMessages(selected);
+    fetchConvs();
+  };
+
+  const current = convs.find((c) => c.user_id === selected);
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Support</h2>
+      <p className="text-xs text-muted-foreground -mt-4">Les messages arrivent aussi sur Telegram : répondez avec « Reply » sur le message du client.</p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="glass-card p-4 lg:col-span-1">
+          <h3 className="font-bold mb-3">Discussions</h3>
+          <div className="space-y-2 max-h-[560px] overflow-y-auto">
+            {convs.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">Aucune discussion</p>}
+            {convs.map((c) => (
+              <div key={c.user_id} onClick={() => setSelected(c.user_id)}
+                className={`p-3 rounded-lg bg-secondary/30 cursor-pointer ${selected === c.user_id ? 'ring-2 ring-primary' : ''}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-sm truncate">{c.profiles?.full_name || c.profiles?.email}</span>
+                  {c.sender === 'user' && <span className="w-2 h-2 rounded-full bg-primary shrink-0" title="Dernier message du client" />}
+                </div>
+                <div className="text-xs text-muted-foreground truncate mt-0.5">{c.sender === 'admin' ? 'Vous : ' : ''}{c.body}</div>
+                <div className="text-[10px] text-muted-foreground mt-1">{new Date(c.created_at).toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass-card p-4 lg:col-span-2 flex flex-col h-[620px]">
+          {!selected ? (
+            <p className="text-sm text-muted-foreground m-auto">Sélectionnez une discussion</p>
+          ) : (
+            <>
+              <div className="pb-3 border-b border-border">
+                <div className="font-semibold">{current?.profiles?.full_name}</div>
+                <div className="text-xs text-muted-foreground">{current?.profiles?.email}</div>
+              </div>
+              <div className="flex-1 overflow-y-auto py-3 space-y-2">
+                {messages.map((m) => (
+                  <div key={m.id} className={`flex ${m.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm whitespace-pre-wrap break-words ${m.sender === 'admin' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                      {m.body}
+                      <div className="text-[10px] opacity-70 mt-1">{new Date(m.created_at).toLocaleString()}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-3 border-t border-border flex gap-2">
+                <textarea value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Votre réponse..." rows={2}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+                  className="flex-1 px-3 py-2 rounded-lg bg-input border border-border input-premium text-sm resize-none" />
+                <Button className="btn-gold" onClick={send} disabled={!reply.trim()}>Envoyer</Button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <details className="glass-card p-4">
+        <summary className="cursor-pointer text-sm font-medium">Anciens tickets</summary>
+        <div className="mt-4"><LegacyTicketsManagement /></div>
+      </details>
+    </div>
+  );
+}
+
+// Anciens tickets (lecture / réponse)
+function LegacyTicketsManagement() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [response, setResponse] = useState('');
@@ -878,7 +989,7 @@ export default function AdminDashboard() {
           {/* Logo */}
           <div className="p-6 border-b border-sidebar-border">
             <div className="flex flex-col gap-1">
-              <Logo size={32} variant="dark" />
+              <Logo size={32} variant="dark" to="/admin" />
               <span className="text-[11px] uppercase tracking-widest text-primary font-semibold pl-10">Admin · Token COVS</span>
             </div>
           </div>

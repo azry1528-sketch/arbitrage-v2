@@ -13,6 +13,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import { CookieBanner } from "@/components/CookieBanner";
+import { FloatingLanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,8 @@ const App = () => (
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <FloatingLanguageSwitcher />
+          <CookieBanner />
         </BrowserRouter>
       </TooltipProvider>
       </LanguageProvider>

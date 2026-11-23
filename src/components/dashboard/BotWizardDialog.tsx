@@ -8,7 +8,7 @@ import { sanitizeDecimalInput } from '@/lib/utils';
 
 const PAIRS = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT', 'Multi-paires'];
 const RISK_LEVELS = ['faible', 'moyen', 'élevé'];
-export const MIN_BOT_AMOUNT = 100;
+export const MIN_BOT_AMOUNT = 120;
 
 export interface BotWizardPayload {
   pair: string;

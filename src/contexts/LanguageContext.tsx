@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { startAutoTranslate } from '@/lib/autoTranslate';
 
 export type Lang = 'fr' | 'en' | 'es' | 'de' | 'it' | 'pt';
 
@@ -88,6 +89,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => { applyTheme(theme); applyAccent(accent); }, []);
+
+  // Traduction automatique de toute l'interface (au-delà du dictionnaire t()).
+  const prevLang = useRef<Lang | null>(null);
+  useEffect(() => {
+    if (language === 'fr' && prevLang.current && prevLang.current !== 'fr') {
+      window.location.reload(); // retour au français : restauration garantie
+      return;
+    }
+    prevLang.current = language;
+    startAutoTranslate(language);
+  }, [language]);
 
   const setAccent = (a: Accent) => {
     setAccentState(a);

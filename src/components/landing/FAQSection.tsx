@@ -21,15 +21,15 @@ const faqs = [
   },
   {
     question: "Quel est le montant minimum pour commencer ?",
-    answer: "Vous pouvez commencer avec seulement 1$. C'est parfait pour tester la plateforme et voir les résultats par vous-même avant d'augmenter votre investissement.",
+    answer: "Le dépôt minimum est de 60$, et il faut allouer au moins 120$ à un bot pour l'activer. Commencez avec un montant que vous êtes prêt à risquer : les performances passées ne garantissent pas les résultats futurs.",
   },
   {
     question: "Combien de temps faut-il pour retirer mes gains ?",
-    answer: "Les demandes de retrait sont traitées en moins de 24 heures. Une fois approuvé, les fonds sont envoyés immédiatement vers votre wallet crypto. Aucun montant minimum pour retirer.",
+    answer: "Les demandes de retrait sont traitées en moins de 24 heures. Une fois approuvé, les fonds sont envoyés immédiatement vers votre wallet crypto. Le retrait minimum est de 60$.",
   },
   {
     question: "Comment fonctionne le programme de parrainage ?",
-    answer: "Vous recevez 10% de tous les investissements effectués par les personnes que vous parrainez, à vie. Par exemple, si votre filleul investit 1000$, vous gagnez 100$ immédiatement. Les commissions sont cumulables sans limite.",
+    answer: "Vous recevez 10 % du montant de chaque dépôt de vos filleuls. Le bonus est mis en attente 30 jours, puis crédité si le dépôt n'a pas été retiré entre-temps et si l'identité du filleul a été vérifiée (KYC). Par exemple, si votre filleul dépose 1000$, vous recevez 100$ après ce délai. Les comptes liés entre eux (même pièce d'identité ou même adresse de retrait) ne donnent pas droit au bonus.",
   },
   {
     question: "Mes fonds sont-ils en sécurité ?",

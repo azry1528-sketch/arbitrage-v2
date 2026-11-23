@@ -12,7 +12,7 @@ const steps = [
     icon: Wallet,
     number: '02',
     title: 'Déposez vos fonds',
-    description: 'Dépôt minimum de 1$ en crypto. Bitcoin, Ethereum, USDT acceptés.',
+    description: 'Dépôt minimum de 60$ en crypto. Bitcoin, Ethereum, USDT acceptés.',
   },
   {
     icon: Play,

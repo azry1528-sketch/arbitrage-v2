@@ -12,6 +12,7 @@ import { SignalsWarningSheet } from '@/components/dashboard/SignalsWarningSheet'
 
 const EXCHANGES = ['Binance', 'Coinbase', 'Kraken', 'KuCoin', 'Bybit', 'OKX', 'Bitfinex', 'Huobi'];
 const FEE_RATE = 0.002; // 0.2% total
+const MIN_MANUAL_TRADE_USDT = 500; // minimum par trade en trading manuel
 
 interface SignalItem {
   pair: string;
@@ -125,10 +126,17 @@ function SignalDetail({ signal, onClose }: { signal: SignalItem; onClose: () => 
   const gain = revenue - cost - fees;
   const roi = cost > 0 ? (gain / cost) * 100 : 0;
   const balance = Number(profile?.balance || 0);
-  const enough = cost > 0 && cost <= balance;
+  const belowMin = cost > 0 && cost < MIN_MANUAL_TRADE_USDT;
+  const enough = cost >= MIN_MANUAL_TRADE_USDT && cost <= balance;
+  const minQty = signal.buyPrice > 0 ? Math.ceil((MIN_MANUAL_TRADE_USDT / signal.buyPrice) * 1e6) / 1e6 : 0;
 
   const execute = async () => {
-    if (!enough || !profile) return;
+    if (!profile) return;
+    if (cost < MIN_MANUAL_TRADE_USDT) {
+      toast({ title: 'Montant trop faible', description: `Le minimum par trade est de ${MIN_MANUAL_TRADE_USDT} USDT.`, variant: 'destructive' });
+      return;
+    }
+    if (!enough) return;
     setStep('processing');
     const steps = [
       `Connexion à ${signal.buyExchange}...`,
@@ -195,7 +203,12 @@ function SignalDetail({ signal, onClose }: { signal: SignalItem; onClose: () => 
                 onChange={(e) => setQty(sanitizeDecimalInput(e.target.value))}
                 placeholder="0.00"
                 className="w-full mt-1 px-4 py-3 rounded-lg bg-input border border-border input-premium" />
-              <div className="text-[11px] text-muted-foreground mt-1">Solde disponible : ${balance.toFixed(2)}</div>
+              <div className="text-[11px] text-muted-foreground mt-1 flex items-center justify-between gap-2">
+                <span>Solde disponible : ${balance.toFixed(2)}</span>
+                <button type="button" className="text-primary hover:underline" onClick={() => setQty(String(minQty))}>
+                  Minimum ({MIN_MANUAL_TRADE_USDT} USDT)
+                </button>
+              </div>
             </div>
 
             <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 space-y-1 text-sm">
@@ -208,7 +221,8 @@ function SignalDetail({ signal, onClose }: { signal: SignalItem; onClose: () => 
               </div>
             </div>
 
-            {!enough && cost > 0 && <div className="text-xs text-destructive">Solde insuffisant pour ce trade.</div>}
+            {belowMin && <div className="text-xs text-destructive">Montant minimum par trade : {MIN_MANUAL_TRADE_USDT} USDT (actuellement ${cost.toFixed(2)}).</div>}
+            {!belowMin && !enough && cost > 0 && <div className="text-xs text-destructive">Solde insuffisant pour ce trade.</div>}
 
             <Button className="w-full btn-gold" disabled={!enough} onClick={execute}>
               Valider et exécuter <ArrowRight className="w-4 h-4 ml-2" />

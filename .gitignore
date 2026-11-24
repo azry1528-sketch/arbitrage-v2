@@ -9,3 +9,5 @@ supabase/.branches
 .DS_Store
 .vercel
 .env*
+src_backup/
+src_avant_v3/

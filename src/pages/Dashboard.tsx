@@ -47,6 +47,7 @@ import { AnnouncementsDialog } from '@/components/dashboard/AnnouncementsDialog'
 import { InstallAppPopup } from '@/components/InstallAppPopup';
 import { PushPromptPopup } from '@/components/PushPromptPopup';
 import { SupportChat } from '@/components/dashboard/SupportChat';
+import { WithdrawalProcessingScreen, WithdrawalSuccessScreen, WithdrawalDetailsPage, WithdrawalSuccessGate } from '@/components/dashboard/WithdrawalScreens';
 import { isAppInstalled } from '@/lib/pwaInstall';
 import { Logo } from '@/components/brand/Logo';
 import { CovsCoin } from '@/components/brand/CovsToken';
@@ -712,6 +713,7 @@ function DepositsPage() {
 function WithdrawalsPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [items, setItems] = useState<any[]>([]);
   const [amount, setAmount] = useState('');
   const [wallet, setWallet] = useState('');
@@ -750,15 +752,17 @@ function WithdrawalsPage() {
     }
     setLoading(true);
     const requestedAmount = parseFloat(amount);
-    const { error } = await supabase.from('withdrawals').insert({ user_id: profile.id, amount: requestedAmount, wallet_address: wallet, crypto_type: ct });
-    if (!error) {
+    const { data: created, error } = await supabase
+      .from('withdrawals')
+      .insert({ user_id: profile.id, amount: requestedAmount, wallet_address: wallet, crypto_type: ct })
+      .select('id')
+      .single();
+    if (!error && created) {
       fetchW(); setAmount(''); setPwd('');
-      toast({
-        title: 'Demande de retrait enregistrée',
-        description: `Votre retrait de $${requestedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} en ${ct} a bien été reçu. Il est en cours de vérification de sécurité et sera traité dans les meilleurs délais. Vous serez notifié dès l'envoi des fonds.`,
-      });
+      // Écran « Retrait en cours » (style Binance)
+      navigate(`/dashboard/withdrawals/${created.id}/processing`);
     }
-    else toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    else toast({ title: 'Erreur', description: error?.message, variant: 'destructive' });
     setLoading(false);
   };
   const filtered = items.filter(w => tab === 'all' ? true : tab === 'success' ? (w.status === 'approved' || w.status === 'completed') : w.status === tab);
@@ -839,13 +843,18 @@ function WithdrawalsPage() {
           {filtered.length === 0 ? <p className="text-center text-sm text-muted-foreground py-6">Aucun retrait</p> : (
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {filtered.map((w) => (
-                <div key={w.id} className="p-3 rounded-lg bg-secondary/30 flex items-center justify-between">
+                <button
+                  type="button"
+                  key={w.id}
+                  onClick={() => navigate(`/dashboard/withdrawals/${w.id}`)}
+                  className="w-full text-left p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors flex items-center justify-between"
+                >
                   <div>
                     <div className="font-medium text-sm">${Number(w.amount).toLocaleString()}</div>
                     <div className="text-[11px] text-muted-foreground">{w.crypto_type} • {new Date(w.created_at).toLocaleDateString()}</div>
                   </div>
                   <StatusBadge status={w.status} />
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -1331,6 +1340,9 @@ export default function Dashboard() {
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/deposits" element={<RedirectTo to="/dashboard/wallet?tab=depot" />} />
             <Route path="/withdrawals" element={<RedirectTo to="/dashboard/wallet?tab=retrait" />} />
+            <Route path="/withdrawals/:id" element={<WithdrawalDetailsPage />} />
+            <Route path="/withdrawals/:id/processing" element={<WithdrawalProcessingScreen />} />
+            <Route path="/withdrawals/:id/success" element={<WithdrawalSuccessScreen />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<RedirectTo to="/dashboard/profile" />} />
             <Route path="/investments" element={<RedirectTo to="/dashboard/portfolio" />} />
@@ -1353,6 +1365,7 @@ export default function Dashboard() {
       <InstallAppPopup open={showInstallApp} onClose={() => { setShowInstallApp(false); setTimeout(() => setShowPushPrompt(true), 400); }} />
       <PushPromptPopup open={showPushPrompt} onClose={() => setShowPushPrompt(false)} />
       <SupportChatWidget />
+      <WithdrawalSuccessGate />
     </div>
   );
 }

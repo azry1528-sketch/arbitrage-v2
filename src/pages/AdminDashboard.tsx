@@ -27,6 +27,7 @@ import {
   Pencil
 } from 'lucide-react';
 import AdminAudit from './admin/AdminAudit';
+import { UserDetailDialog } from '@/components/admin/UserDetailDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,6 +122,8 @@ function AdminOverview() {
 function UsersManagement() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const selectedUser = users.find((u) => u.id === selectedUserId) || null;
 
   useEffect(() => {
     fetchUsers();
@@ -156,14 +159,6 @@ function UsersManagement() {
     fetchUsers();
   };
 
-  const updateBalance = async (userId: string, newBalance: number) => {
-    await supabase
-      .from('profiles')
-      .update({ balance: newBalance })
-      .eq('id', userId);
-    fetchUsers();
-  };
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Gestion des utilisateurs</h2>
@@ -183,7 +178,7 @@ function UsersManagement() {
             </thead>
             <tbody className="divide-y divide-border">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-secondary/30">
+                <tr key={user.id} className="hover:bg-secondary/30 cursor-pointer" onClick={() => setSelectedUserId(user.id)}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs text-primary-foreground font-bold">
@@ -194,12 +189,7 @@ function UsersManagement() {
                   </td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">{user.email}</td>
                   <td className="px-6 py-4">
-                    <input
-                      type="number"
-                      value={user.balance}
-                      onChange={(e) => updateBalance(user.id, parseFloat(e.target.value) || 0)}
-                      className="w-24 px-2 py-1 rounded bg-input border border-border text-sm"
-                    />
+                    <span className="text-sm font-medium">${Number(user.balance || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -222,7 +212,7 @@ function UsersManagement() {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -246,6 +236,12 @@ function UsersManagement() {
           </table>
         </div>
       </div>
+
+      <UserDetailDialog
+        user={selectedUser}
+        onClose={() => setSelectedUserId(null)}
+        onSaved={fetchUsers}
+      />
     </div>
   );
 }

@@ -749,8 +749,15 @@ function WithdrawalsPage() {
       toast({ title: 'Mot de passe de retrait incorrect', variant: 'destructive' }); return;
     }
     setLoading(true);
-    const { error } = await supabase.from('withdrawals').insert({ user_id: profile.id, amount: parseFloat(amount), wallet_address: wallet, crypto_type: ct });
-    if (!error) { fetchW(); setAmount(''); setPwd(''); toast({ title: 'Demande envoyée', description: 'En attente de validation admin' }); }
+    const requestedAmount = parseFloat(amount);
+    const { error } = await supabase.from('withdrawals').insert({ user_id: profile.id, amount: requestedAmount, wallet_address: wallet, crypto_type: ct });
+    if (!error) {
+      fetchW(); setAmount(''); setPwd('');
+      toast({
+        title: 'Demande de retrait enregistrée',
+        description: `Votre retrait de $${requestedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} en ${ct} a bien été reçu. Il est en cours de vérification de sécurité et sera traité dans les meilleurs délais. Vous serez notifié dès l'envoi des fonds.`,
+      });
+    }
     else toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     setLoading(false);
   };

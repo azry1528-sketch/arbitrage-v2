@@ -5,65 +5,84 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface Ticket {
+interface Msg {
   id: string;
-  subject: string;
-  message: string;
-  admin_response: string | null;
-  status: string | null;
-  created_at: string | null;
+  sender: 'user' | 'admin';
+  body: string;
+  created_at: string;
 }
 
-// Bouton flottant + popup de chat, en bas à droite, réutilise la table support_tickets
+// Bouton flottant + popup de chat, en bas à droite.
+// Utilise la même conversation que la page Support (table support_messages) :
+// les réponses envoyées depuis l'espace admin ou Telegram apparaissent ici en temps réel.
 export function SupportChatWidget() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [unread, setUnread] = useState(0);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
 
-  const fetchTickets = async () => {
-    if (!profile) return;
-    const { data } = await supabase
-      .from('support_tickets')
-      .select('*')
-      .eq('user_id', profile.id)
-      .order('created_at', { ascending: true });
-    setTickets(data || []);
-  };
-
-  useEffect(() => { if (open && profile) fetchTickets(); }, [open, profile]);
+  const addMessage = (m: Msg) =>
+    setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile?.id) return;
+
+    supabase
+      .from('support_messages' as any)
+      .select('*')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: true })
+      .limit(300)
+      .then(({ data }) => setMessages((data as any) || []));
+
     const channel = supabase
-      .channel('support_tickets_widget')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets', filter: `user_id=eq.${profile.id}` }, () => fetchTickets())
+      .channel(`support-widget-${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${profile.id}` },
+        (payload) => {
+          const m = payload.new as Msg;
+          addMessage(m);
+          if (m.sender === 'admin' && !openRef.current) setUnread((n) => n + 1);
+        }
+      )
       .subscribe();
+
     return () => { supabase.removeChannel(channel); };
   }, [profile?.id]);
 
   useEffect(() => {
+    if (open) setUnread(0);
+  }, [open]);
+
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [tickets, open]);
+  }, [messages.length, open]);
 
   const send = async () => {
-    if (!text.trim() || !profile) return;
+    const body = text.trim();
+    if (!body || sending) return;
     setSending(true);
-    const { error } = await supabase.from('support_tickets').insert({
-      user_id: profile.id,
-      subject: 'Chat en direct',
-      message: text.trim(),
-    });
-    if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    } else {
+    try {
+      const { data, error } = await supabase.functions.invoke('support-send', { body: { message: body } });
+      let msg = (data as any)?.error as string | undefined;
+      if (error && !msg) {
+        try { msg = (await (error as any).context.json())?.error; } catch { msg = error.message; }
+      }
+      if (msg) throw new Error(msg);
+      if ((data as any)?.message) addMessage((data as any).message);
       setText('');
-      fetchTickets();
+    } catch (e: any) {
+      toast({ title: 'Message non envoyé', description: e?.message, variant: 'destructive' });
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   if (!profile) return null;
@@ -89,6 +108,11 @@ export function SupportChatWidget() {
             </motion.span>
           )}
         </AnimatePresence>
+        {!open && unread > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+            {unread > 9 ? '9+' : unread}
+          </span>
+        )}
       </motion.button>
 
       {/* Popup de chat */}
@@ -111,26 +135,23 @@ export function SupportChatWidget() {
               </div>
             </div>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
-              {tickets.length === 0 ? (
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2.5">
+              {messages.length === 0 ? (
                 <p className="text-center text-sm text-muted-foreground py-6">
                   Écrivez-nous, un conseiller vous répondra bientôt.
                 </p>
               ) : (
-                tickets.map((t) => (
-                  <div key={t.id} className="space-y-1.5">
-                    <div className="flex justify-end">
-                      <div className="max-w-[80%] rounded-lg rounded-tr-sm bg-primary text-primary-foreground px-3 py-2 text-sm">
-                        {t.message}
-                      </div>
+                messages.map((m) => (
+                  <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div
+                      className={`max-w-[80%] px-3 py-2 text-sm whitespace-pre-wrap break-words ${
+                        m.sender === 'user'
+                          ? 'rounded-lg rounded-tr-sm bg-primary text-primary-foreground'
+                          : 'rounded-lg rounded-tl-sm bg-secondary'
+                      }`}
+                    >
+                      {m.body}
                     </div>
-                    {t.admin_response && (
-                      <div className="flex justify-start">
-                        <div className="max-w-[80%] rounded-lg rounded-tl-sm bg-secondary px-3 py-2 text-sm">
-                          {t.admin_response}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))
               )}
@@ -143,6 +164,7 @@ export function SupportChatWidget() {
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !sending) send(); }}
                 placeholder="Écrivez votre message..."
+                maxLength={2000}
                 className="flex-1 px-3 py-2 rounded-lg bg-input border border-border input-premium text-sm"
               />
               <button

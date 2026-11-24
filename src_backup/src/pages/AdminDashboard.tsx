@@ -21,7 +21,10 @@ import {
   BarChart3,
   ShieldCheck,
   ShieldQuestion,
-  Eye
+  Eye,
+  Megaphone,
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import AdminAudit from './admin/AdminAudit';
 import { Button } from '@/components/ui/button';
@@ -734,6 +737,7 @@ function WithdrawalsManagement() {
 
 // Support : discussions (réponse via Telegram ou depuis cette page)
 function SupportManagement() {
+  const { toast } = useToast();
   const [convs, setConvs] = useState<any[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -776,7 +780,7 @@ function SupportManagement() {
     const body = reply.trim();
     if (!selected || !body) return;
     const { error } = await supabase.from('support_messages' as any).insert({ user_id: selected, sender: 'admin', body });
-    if (error) return;
+    if (error) { toast({ title: 'Réponse non envoyée', description: error.message, variant: 'destructive' }); return; }
     await supabase.from('notifications').insert({ user_id: selected, type: 'support_reply', title: '💬 Réponse du support', message: body.slice(0, 140) } as any);
     setReply('');
     fetchMessages(selected);
@@ -953,6 +957,155 @@ function LegacyTicketsManagement() {
   );
 }
 
+// Annonces : créer, modifier, activer/désactiver, supprimer
+function AnnouncementsManagement() {
+  const { toast } = useToast();
+  const [items, setItems] = useState<any[]>([]);
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editMessage, setEditMessage] = useState('');
+
+  const fetchItems = async () => {
+    const { data, error } = await supabase
+      .from('announcements' as any)
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+    setItems((data as any) || []);
+  };
+
+  useEffect(() => { fetchItems(); }, []);
+
+  const create = async () => {
+    if (!title.trim() || !message.trim()) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from('announcements' as any)
+      .insert({ title: title.trim(), message: message.trim(), is_active: true });
+    setSaving(false);
+    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+    setTitle(''); setMessage('');
+    toast({ title: '📢 Annonce publiée' });
+    fetchItems();
+  };
+
+  const toggleActive = async (id: string, current: boolean) => {
+    const { error } = await supabase.from('announcements' as any).update({ is_active: !current }).eq('id', id);
+    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+    setItems((prev) => prev.map((a) => (a.id === id ? { ...a, is_active: !current } : a)));
+  };
+
+  const startEdit = (a: any) => { setEditingId(a.id); setEditTitle(a.title); setEditMessage(a.message); };
+
+  const saveEdit = async () => {
+    if (!editingId || !editTitle.trim() || !editMessage.trim()) return;
+    const { error } = await supabase
+      .from('announcements' as any)
+      .update({ title: editTitle.trim(), message: editMessage.trim() })
+      .eq('id', editingId);
+    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+    setEditingId(null);
+    toast({ title: 'Annonce modifiée' });
+    fetchItems();
+  };
+
+  const remove = async (id: string) => {
+    if (!window.confirm('Supprimer définitivement cette annonce ?')) return;
+    const { error } = await supabase.from('announcements' as any).delete().eq('id', id);
+    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+    setItems((prev) => prev.filter((a) => a.id !== id));
+    toast({ title: 'Annonce supprimée' });
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Annonces</h2>
+      <p className="text-xs text-muted-foreground -mt-4">
+        Les annonces actives sont visibles par les utilisateurs ; la plus récente apparaît sur leur page d'accueil.
+      </p>
+
+      <div className="glass-card p-4 space-y-3">
+        <h3 className="font-bold">Nouvelle annonce</h3>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Titre (ex. 🚀 Nouvelle fonctionnalité)"
+          maxLength={120}
+          className="w-full px-4 py-3 rounded-lg bg-input border border-border input-premium text-sm"
+        />
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Message de l'annonce..."
+          rows={4}
+          className="w-full px-4 py-3 rounded-lg bg-input border border-border input-premium text-sm resize-none"
+        />
+        <Button className="btn-gold" onClick={create} disabled={saving || !title.trim() || !message.trim()}>
+          <Megaphone className="w-4 h-4 mr-2" /> Publier
+        </Button>
+      </div>
+
+      <div className="glass-card p-4">
+        <h3 className="font-bold mb-3">Annonces ({items.length})</h3>
+        <div className="space-y-3">
+          {items.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">Aucune annonce</p>}
+          {items.map((a) => (
+            <div key={a.id} className="p-3 rounded-lg bg-secondary/30 space-y-2">
+              {editingId === a.id ? (
+                <>
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    maxLength={120}
+                    className="w-full px-3 py-2 rounded-lg bg-input border border-border input-premium text-sm"
+                  />
+                  <textarea
+                    value={editMessage}
+                    onChange={(e) => setEditMessage(e.target.value)}
+                    rows={4}
+                    className="w-full px-3 py-2 rounded-lg bg-input border border-border input-premium text-sm resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" className="btn-gold" onClick={saveEdit} disabled={!editTitle.trim() || !editMessage.trim()}>Enregistrer</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Annuler</Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm">{a.title}</div>
+                      <div className="text-[11px] text-muted-foreground">{new Date(a.created_at).toLocaleString()}</div>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${a.is_active ? 'bg-success/20 text-success' : 'bg-muted text-muted-foreground'}`}>
+                      {a.is_active ? 'Active' : 'Masquée'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{a.message}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => toggleActive(a.id, a.is_active)}>
+                      {a.is_active ? 'Masquer' : 'Activer'}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => startEdit(a)}>
+                      <Pencil className="w-3.5 h-3.5 mr-1" /> Modifier
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-destructive" onClick={() => remove(a.id)}>
+                      <Trash2 className="w-3.5 h-3.5 mr-1" /> Supprimer
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Main Admin Dashboard
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth();
@@ -966,6 +1119,7 @@ export default function AdminDashboard() {
     { path: '/admin/withdrawals', icon: ArrowUpCircle, label: 'Retraits' },
     { path: '/admin/kyc', icon: ShieldQuestion, label: 'KYC' },
     { path: '/admin/support', icon: MessageCircle, label: 'Support' },
+    { path: '/admin/announcements', icon: Megaphone, label: 'Annonces' },
     { path: '/admin/audit', icon: ShieldCheck, label: 'Audit rôles' },
   ];
 
@@ -1073,6 +1227,7 @@ export default function AdminDashboard() {
             <Route path="/withdrawals" element={<WithdrawalsManagement />} />
             <Route path="/kyc" element={<KYCManagement />} />
             <Route path="/support" element={<SupportManagement />} />
+            <Route path="/announcements" element={<AnnouncementsManagement />} />
             <Route path="/audit" element={<AdminAudit />} />
           </Routes>
         </div>

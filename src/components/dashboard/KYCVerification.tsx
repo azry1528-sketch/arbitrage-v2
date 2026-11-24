@@ -67,6 +67,8 @@ export function KYCVerification({ onApproved }: { onApproved?: () => void }) {
           kyc_document_front_url: frontUrl,
           kyc_document_back_url: backUrl,
           kyc_selfie_url: selfieUrl,
+          kyc_status: 'pending',
+          kyc_submitted_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
 

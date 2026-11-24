@@ -854,7 +854,6 @@ function NetworkPage() {
   const { toast } = useToast();
   const [refs, setRefs] = useState<any[]>([]);
   const [totalBonus, setTotalBonus] = useState(0);
-  const [pendingBonus, setPendingBonus] = useState(0);
   useEffect(() => {
     if (profile) supabase.rpc('get_my_referrals').then(({ data }) => setRefs(data || []));
   }, [profile]);
@@ -862,13 +861,11 @@ function NetworkPage() {
     if (!profile?.id) return;
     supabase
       .from('referral_earnings' as any)
-      .select('bonus_amount, status')
+      .select('bonus_amount')
       .eq('referrer_id', profile.id)
       .then(({ data }) => {
         const rows = ((data as any) || []) as any[];
-        const sum = (st: string) => rows.filter((r) => r.status === st).reduce((a, r) => a + Number(r.bonus_amount), 0);
-        setTotalBonus(sum('released'));
-        setPendingBonus(sum('pending'));
+        setTotalBonus(rows.reduce((a, r) => a + Number(r.bonus_amount), 0));
       });
   }, [profile?.id]);
   const link = `${window.location.origin}/register?ref=${profile?.referral_code}`;
@@ -888,12 +885,6 @@ function NetworkPage() {
           <span className="text-sm text-muted-foreground">Total gagné en bonus de parrainage</span>
           <span className="text-sm font-semibold text-success">+${totalBonus.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
-        {pendingBonus > 0 && (
-          <div className="mt-1 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Bonus en attente (30 jours)</span>
-            <span className="text-xs text-muted-foreground">${pendingBonus.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-          </div>
-        )}
       </div>
       <div className="glass-card p-5">
         <h3 className="font-bold mb-3">Mes filleuls ({refs.length})</h3>

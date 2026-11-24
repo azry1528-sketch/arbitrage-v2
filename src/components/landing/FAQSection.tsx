@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     question: "Comment fonctionne le programme de parrainage ?",
-    answer: "Vous recevez 10 % du montant de chaque dépôt de vos filleuls. Le bonus est mis en attente 30 jours, puis crédité si le dépôt n'a pas été retiré entre-temps et si l'identité du filleul a été vérifiée (KYC). Par exemple, si votre filleul dépose 1000$, vous recevez 100$ après ce délai. Les comptes liés entre eux (même pièce d'identité ou même adresse de retrait) ne donnent pas droit au bonus.",
+    answer: "Vous recevez 10 % du montant de chaque dépôt de vos filleuls. Le bonus est crédité sur votre solde dès que le dépôt est approuvé. Par exemple, si votre filleul dépose 1000$, vous recevez 100$.",
   },
   {
     question: "Mes fonds sont-ils en sécurité ?",

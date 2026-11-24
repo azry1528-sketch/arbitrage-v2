@@ -576,24 +576,21 @@ function WithdrawalsManagement() {
   };
 
   const updateStatus = async (withdrawalId: string, status: 'approved' | 'rejected', _userId: string, amount: number) => {
+    // Le débit du solde est fait côté base (trigger trg_debit_balance_on_withdrawal), une seule fois.
+    const { error } = await supabase
+      .from('withdrawals')
+      .update({ status })
+      .eq('id', withdrawalId);
+
+    if (error) {
+      const msg = error.message?.includes('solde_insuffisant') ? "Solde insuffisant : l'utilisateur n'a pas assez de fonds." : error.message;
+      toast({ title: 'Erreur', description: msg, variant: 'destructive' });
+      return;
+    }
+
     if (status === 'approved') {
-      // Envoi réel via NOWPayments : le solde est débité côté serveur, puis la 2FA valide le payout.
-      const code = window.prompt('Code 2FA NOWPayments (6 chiffres) pour envoyer ce retrait :')?.trim();
-      if (!code) return;
-      const { data, error } = await supabase.functions.invoke('nowpayments-payout', {
-        body: { withdrawal_id: withdrawalId, verification_code: code },
-      });
-      let msg: string | undefined = (data as any)?.error;
-      if (error && !msg) {
-        // supabase-js met le détail de la réponse non-2xx dans error.context
-        try { msg = (await (error as any).context.json())?.error; } catch { msg = error.message; }
-      }
-      if (msg) { toast({ title: 'Envoi impossible', description: msg, variant: 'destructive' }); fetchWithdrawals(); return; }
-      toast({ title: '✅ Envoi lancé', description: `$${amount.toLocaleString()} en cours d'envoi via NOWPayments.` });
+      toast({ title: '✅ Retrait validé', description: `$${amount.toLocaleString()} débité du solde. L'utilisateur a été notifié.` });
     } else {
-      // Un rejet recrédite automatiquement le solde si celui-ci avait été réservé (trigger SQL).
-      const { error } = await supabase.from('withdrawals').update({ status }).eq('id', withdrawalId);
-      if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
       toast({ title: '❌ Retrait rejeté', description: `L'utilisateur a été notifié.` });
     }
 
